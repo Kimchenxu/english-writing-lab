@@ -1,0 +1,246 @@
+{
+  "day": 1,
+  "slug": "from-words-to-sentences",
+  "track": "Accuracy → Use",
+  "title": "Stop Collecting Words. Start Using Them.",
+  "subtitle": "你认识 improve / important / affect，却写不出准确的句子。今天把“知道单词”变成“会用动词和搭配”。",
+  "focus": "精准动词 + 自然搭配 + 完整句",
+  "topic": "Should students use AI tools to study?",
+  "canDo": [
+    "写出主语 + 有力动词 + 具体宾语",
+    "正确使用 have an impact on / lead to / provide feedback",
+    "不用复杂句堆砌，也能写清楚一个观点"
+  ],
+  "languageKit": [
+    [
+      "have an impact on",
+      "对……产生影响",
+      "The design of an assignment can have an impact on students’ motivation.",
+      "✗ have an influence to"
+    ],
+    [
+      "provide feedback on",
+      "就……提供反馈",
+      "The system provides immediate feedback on grammatical errors.",
+      "✗ give a feedback about"
+    ],
+    [
+      "lead to",
+      "导致 / 带来",
+      "Regular revision can lead to noticeable improvement.",
+      "✗ lead for"
+    ],
+    [
+      "develop a skill",
+      "培养技能",
+      "Students develop writing skills through repeated practice.",
+      "✗ grow a skill"
+    ],
+    [
+      "rely too heavily on",
+      "过度依赖……",
+      "Learners should not rely too heavily on automated suggestions.",
+      "✗ depend too much of"
+    ]
+  ],
+  "framework": "Claim → Why → Example → What this means",
+  "coach": "不用故意把每一句写成复杂句。学术写作里的高质量简单句，核心是信息准确、动词有力、搭配自然。",
+  "id": "day01",
+  "sections": [
+    {
+      "id": "precision",
+      "title": "01 · Word in Action",
+      "subtitle": "搭配不是死记：辨别词与词如何自然地一起出现。",
+      "durationLabel": "8 min",
+      "minutes": 8,
+      "tasks": [
+        {
+          "id": "d1-01",
+          "type": "choice",
+          "prompt": "Regular practice can ___ noticeable improvement in writing.",
+          "options": [
+            "lead to",
+            "lead for",
+            "make to"
+          ],
+          "answer": "lead to",
+          "explanation": "lead to + 名词，表示“导致/带来”结果。"
+        },
+        {
+          "id": "d1-02",
+          "type": "choice",
+          "prompt": "Choose the natural phrase: The tutor ___ feedback on my essay.",
+          "options": [
+            "provides",
+            "makes",
+            "does"
+          ],
+          "answer": "provides",
+          "explanation": "provide feedback on sth. 是非常常见的学术搭配。"
+        },
+        {
+          "id": "d1-03",
+          "type": "choice",
+          "prompt": "Technology can have an impact ___ how students learn.",
+          "options": [
+            "on",
+            "to",
+            "for"
+          ],
+          "answer": "on",
+          "explanation": "固定搭配：have an impact on + 名词/从句。"
+        },
+        {
+          "id": "d1-04",
+          "type": "choice",
+          "prompt": "Which expression is most natural in academic writing?",
+          "options": [
+            "develop critical-thinking skills",
+            "grow critical-thinking skills",
+            "make critical-thinking skills"
+          ],
+          "answer": "develop critical-thinking skills",
+          "explanation": "技能是 develop/improve/acquire skills，不是 grow/make skills。"
+        },
+        {
+          "id": "d1-05",
+          "type": "write",
+          "prompt": "用 rely too heavily on 写一句话，说明学生使用 AI 工具的潜在问题。",
+          "answer": "Students may rely too heavily on AI tools and fail to develop their own writing skills.",
+          "explanation": "注意 rely on 的介词，后面可以用 and 衔接直接后果。",
+          "hint": "Students may rely too heavily on ..."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "02 · Build the Sentence",
+      "subtitle": "先把意思写完整，再考虑复杂结构。",
+      "durationLabel": "12 min",
+      "minutes": 12,
+      "tasks": [
+        {
+          "id": "d1-06",
+          "type": "write",
+          "prompt": "中文 → 英文：每天练习写作可以提高学生表达想法的能力。",
+          "answer": "Daily writing practice can improve students’ ability to express their ideas.",
+          "explanation": "ability to do sth.；improve someone’s ability to ...；尽量写出具体宾语。",
+          "hint": "Daily writing practice can improve ..."
+        },
+        {
+          "id": "d1-07",
+          "type": "write",
+          "prompt": "中文 → 英文：快速反馈可以帮助学生发现语法错误。",
+          "answer": "Immediate feedback can help students identify grammatical errors.",
+          "explanation": "help sb. do sth.；identify grammatical errors 比 find grammar mistakes 更适合学术语境。",
+          "hint": "Immediate feedback can help ..."
+        },
+        {
+          "id": "d1-08",
+          "type": "write",
+          "prompt": "中文 → 英文：有些学生知道很多高级词汇，但他们无法准确使用这些词。",
+          "answer": "Some students know many advanced words, but they struggle to use them accurately.",
+          "explanation": "struggle to do sth. 表示做某事有困难；连接词 but 体现反差。",
+          "hint": "Some students ..., but they struggle to ..."
+        }
+      ]
+    },
+    {
+      "id": "rewrite",
+      "title": "03 · Sentence Surgery",
+      "subtitle": "改掉空泛、口语化、冗余的表达。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d1-09",
+          "type": "write",
+          "prompt": "把这句话改得更明确、自然：AI is very good and it is very important for learning.",
+          "answer": "AI tools can support learning by providing students with immediate, personalized feedback.",
+          "explanation": "不要用 good / important 反复充当论点，改为具体作用。",
+          "hint": "What exactly can an AI tool do for a learner?"
+        },
+        {
+          "id": "d1-10",
+          "type": "write",
+          "prompt": "改写，消除不自然搭配：Practice makes students grow their writing ability.",
+          "answer": "Regular practice helps students develop their writing skills.",
+          "explanation": "develop writing skills / improve writing ability 都更自然。",
+          "hint": "helps students develop ..."
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "04 · Connect the Logic",
+      "subtitle": "让观点之间有真实逻辑，而不是乱加连接词。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d1-11",
+          "type": "choice",
+          "prompt": "Choose the best logical connector: AI tools save time. ___, students still need to evaluate their suggestions.",
+          "options": [
+            "However",
+            "Therefore",
+            "For example"
+          ],
+          "answer": "However",
+          "explanation": "第二句是让步或反面提醒，而不是第一句的直接结果。"
+        },
+        {
+          "id": "d1-12",
+          "type": "write",
+          "prompt": "合并两句，表达“原因”：Some students make the same mistakes repeatedly. They rarely review their feedback.",
+          "answer": "Some students make the same mistakes repeatedly because they rarely review their feedback.",
+          "explanation": "because 引出原因；不要滥用 therefore 连接所有想法。",
+          "hint": "Use because; preserve the cause-and-effect relationship."
+        },
+        {
+          "id": "d1-13",
+          "type": "write",
+          "prompt": "合并两句，表达“结果”：Writing tasks are too vague. Students often produce superficial answers.",
+          "answer": "When writing tasks are too vague, students often produce superficial answers.",
+          "explanation": "用 when 显示情境与结果；也可用 As a result 分成两句。",
+          "hint": "Try When ... , ... or ... . As a result, ..."
+        }
+      ]
+    },
+    {
+      "id": "paragraph",
+      "title": "05 · Paragraph Challenge",
+      "subtitle": "独立完成一段有观点、有原因、有例子的英文。",
+      "durationLabel": "15 min",
+      "minutes": 15,
+      "tasks": [
+        {
+          "id": "d1-14",
+          "type": "write",
+          "prompt": "学术段落（120–150 words）：Should students use AI tools when learning to write? 选择明确立场，写出 1 个具体理由、1 个真实或合理的例子，以及 1 句限制条件。",
+          "answer": "AI tools can support students who are learning to write, but they should not replace independent practice. One important benefit is that these tools can provide immediate feedback on grammar and sentence structure. For example, a learner may repeatedly misuse the phrase “have an impact on.” An AI tool can point out the incorrect preposition and show how the phrase works in context. This kind of feedback helps students recognize patterns that they might otherwise miss. However, students may rely too heavily on suggested sentences if they simply copy the corrections. To develop genuine writing skills, they need to attempt each task on their own, compare their drafts with the feedback, and rewrite the sentences in their own words. Therefore, AI is most useful as a writing coach rather than an automatic answer generator.",
+          "explanation": "这只是其中一种参考论证：立场 → 机制 → 例子 → 限制 → 结论。内容并非唯一答案。",
+          "hint": "Start with: AI tools can be useful for writing practice because ...",
+          "minWords": 120
+        }
+      ]
+    },
+    {
+      "id": "reflection",
+      "title": "06 · Rewrite & Reflect",
+      "subtitle": "比对后修改自己的语言，形成个人错题库。",
+      "durationLabel": "5 min",
+      "minutes": 5,
+      "tasks": [
+        {
+          "id": "d1-15",
+          "type": "write",
+          "prompt": "复盘：从你刚写的段落里挑一句最空泛的话，把它改成更具体的一句英文。下面再用中文简短说明改动了什么。",
+          "answer": "Before: AI is good for students.\nAfter: AI feedback helps students identify recurring grammar errors and revise their drafts more efficiently.\n修改点：用具体帮助取代 good，把作用写清楚。",
+          "explanation": "不要只抄范文；从自己的真实草稿选一句，形成“修改前→修改后”的证据。",
+          "hint": "Before: ...\nAfter: ...\n原因：..."
+        }
+      ]
+    }
+  ]
+}

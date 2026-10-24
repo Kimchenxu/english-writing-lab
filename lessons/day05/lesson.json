@@ -1,0 +1,246 @@
+{
+  "day": 5,
+  "slug": "academic-and-technical-collocations",
+  "track": "Academic Register",
+  "title": "Sound Academic, Not Artificial.",
+  "subtitle": "专业名词与学术搭配：evaluate a model、identify a bottleneck、pose a challenge、make a trade-off。用专业语言准确说事。",
+  "focus": "学术词组 + 技术语境 + 语域控制",
+  "topic": "Should universities teach students how to use AI tools responsibly?",
+  "canDo": [
+    "使用 evaluate / identify / pose / balance 及其典型宾语",
+    "辨别 accuracy、latency、throughput 的含义",
+    "把口语化评论改成可检验的学术判断"
+  ],
+  "languageKit": [
+    [
+      "evaluate a model",
+      "评估模型",
+      "Researchers evaluate a model on a held-out test set.",
+      "✗ estimate a model（若想表达评测）"
+    ],
+    [
+      "identify a bottleneck",
+      "识别瓶颈",
+      "Profiling helps engineers identify a performance bottleneck.",
+      "✗ find out a bottle neck"
+    ],
+    [
+      "pose a challenge",
+      "构成挑战",
+      "Limited memory capacity poses a challenge for large models.",
+      "✗ give a challenge for"
+    ],
+    [
+      "make a trade-off between",
+      "在两者之间权衡",
+      "Engineers make trade-offs between latency and throughput.",
+      "✗ take a trade off of"
+    ],
+    [
+      "raise concerns about",
+      "引发对……的担忧",
+      "Automated grading raises concerns about transparency.",
+      "✗ raise a worry of"
+    ]
+  ],
+  "framework": "Problem → Technical detail → Trade-off → Implication",
+  "coach": "术语不能只是装饰：latency 是单个请求从开始到完成的延迟；throughput 是单位时间内处理的工作量。写作时必须用对。",
+  "id": "day05",
+  "sections": [
+    {
+      "id": "precision",
+      "title": "01 · Word in Action",
+      "subtitle": "搭配不是死记：辨别词与词如何自然地一起出现。",
+      "durationLabel": "8 min",
+      "minutes": 8,
+      "tasks": [
+        {
+          "id": "d5-01",
+          "type": "choice",
+          "prompt": "Engineers use profiling tools to ___ performance bottlenecks.",
+          "options": [
+            "identify",
+            "pretend",
+            "attend"
+          ],
+          "answer": "identify",
+          "explanation": "identify a bottleneck 是常见技术搭配。"
+        },
+        {
+          "id": "d5-02",
+          "type": "choice",
+          "prompt": "Large models can ___ a challenge for devices with limited memory.",
+          "options": [
+            "pose",
+            "do",
+            "make"
+          ],
+          "answer": "pose",
+          "explanation": "pose a challenge / pose a risk。"
+        },
+        {
+          "id": "d5-03",
+          "type": "choice",
+          "prompt": "Researchers should ___ a model on data it has not seen during training.",
+          "options": [
+            "evaluate",
+            "evaluate of",
+            "evaluation"
+          ],
+          "answer": "evaluate",
+          "explanation": "evaluate a model（及物动词）；on a dataset。"
+        },
+        {
+          "id": "d5-04",
+          "type": "choice",
+          "prompt": "Which term means “the amount of work processed per unit of time”?",
+          "options": [
+            "throughput",
+            "latency",
+            "accuracy"
+          ],
+          "answer": "throughput",
+          "explanation": "throughput 衡量单位时间处理量；latency 衡量请求延迟。"
+        },
+        {
+          "id": "d5-05",
+          "type": "write",
+          "prompt": "用 raise concerns about 写一句话，指出 AI 自动评分的一个风险。",
+          "answer": "Automated essay grading raises concerns about fairness because some systems may struggle to assess unconventional arguments.",
+          "explanation": "raise concerns about + 名词；用 because 补充原因。",
+          "hint": "Automated essay grading raises concerns about ..."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "02 · Build the Sentence",
+      "subtitle": "先把意思写完整，再考虑复杂结构。",
+      "durationLabel": "12 min",
+      "minutes": 12,
+      "tasks": [
+        {
+          "id": "d5-06",
+          "type": "write",
+          "prompt": "中文 → 英文：研究人员需要在独立测试集上评估模型的准确率。",
+          "answer": "Researchers need to evaluate model accuracy on an independent test set.",
+          "explanation": "evaluate + 指标；on an independent test set。",
+          "hint": "Researchers need to evaluate ..."
+        },
+        {
+          "id": "d5-07",
+          "type": "write",
+          "prompt": "中文 → 英文：更高的吞吐量不一定意味着更低的延迟。",
+          "answer": "Higher throughput does not necessarily imply lower latency.",
+          "explanation": "does not necessarily imply 是审慎的技术表达。",
+          "hint": "Higher throughput does not necessarily ..."
+        },
+        {
+          "id": "d5-08",
+          "type": "write",
+          "prompt": "中文 → 英文：有限的计算资源对部署大型模型构成挑战。",
+          "answer": "Limited computing resources pose a challenge to deploying large models.",
+          "explanation": "pose a challenge to + 名词/-ing；deploy models 是技术搭配。",
+          "hint": "Limited computing resources pose ..."
+        }
+      ]
+    },
+    {
+      "id": "rewrite",
+      "title": "03 · Sentence Surgery",
+      "subtitle": "改掉空泛、口语化、冗余的表达。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d5-09",
+          "type": "write",
+          "prompt": "把模糊技术表述写准确：The AI is faster and much more powerful.",
+          "answer": "The new model reduces average inference latency while maintaining similar accuracy on the evaluation dataset.",
+          "explanation": "“更快”指什么？延迟还是吞吐？“更强”指准确率还是规模？指标要可解释。",
+          "hint": "Name a metric and a comparison basis."
+        },
+        {
+          "id": "d5-10",
+          "type": "write",
+          "prompt": "改写口语化语句：AI makes students lazy and stupid.",
+          "answer": "Excessive reliance on AI-generated answers may reduce opportunities for students to practice independent reasoning.",
+          "explanation": "避免情绪化与绝对化，用可讨论的机制和谨慎措辞替代。",
+          "hint": "Excessive reliance on ... may ..."
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "04 · Connect the Logic",
+      "subtitle": "让观点之间有真实逻辑，而不是乱加连接词。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d5-11",
+          "type": "choice",
+          "prompt": "A model improves throughput but requires more memory. Which relation is central?",
+          "options": [
+            "a trade-off",
+            "a direct cause only",
+            "a definition"
+          ],
+          "answer": "a trade-off",
+          "explanation": "性能提升伴随成本，是 trade-off。"
+        },
+        {
+          "id": "d5-12",
+          "type": "write",
+          "prompt": "用 while 表示权衡：The new system handles more requests per second. It uses more GPU memory.",
+          "answer": "The new system handles more requests per second while using more GPU memory.",
+          "explanation": "while 在这里表示同时成立的对比，不是必然的因果。",
+          "hint": "... while ..."
+        },
+        {
+          "id": "d5-13",
+          "type": "write",
+          "prompt": "建立“风险 → 对策”关系：AI-generated answers can be inaccurate. Students should verify important claims.",
+          "answer": "Because AI-generated answers can be inaccurate, students should verify important claims against reliable sources.",
+          "explanation": "对策要对应到具体风险。",
+          "hint": "Because ..., students should ..."
+        }
+      ]
+    },
+    {
+      "id": "paragraph",
+      "title": "05 · Paragraph Challenge",
+      "subtitle": "独立完成一段有观点、有原因、有例子的英文。",
+      "durationLabel": "15 min",
+      "minutes": 15,
+      "tasks": [
+        {
+          "id": "d5-14",
+          "type": "write",
+          "prompt": "学术段落（135–175 words）：Should universities explicitly teach responsible use of AI tools? 使用至少 3 个专业/学术搭配，说明一个风险和一项具体教学措施。",
+          "answer": "Universities should explicitly teach students how to use AI tools responsibly rather than assume that students will develop these skills on their own. AI systems can provide useful feedback and help learners identify problems in a draft. However, automatically generated explanations may contain inaccurate claims or misleading references. This limitation raises concerns about students’ ability to evaluate information critically. For example, a student preparing a technical report might accept an AI-generated performance comparison without checking whether both systems were tested under similar conditions. Universities could address this problem by teaching students to verify evidence, describe the limits of their sources, and explain how they used AI assistance. In computer science courses, instructors could also ask students to evaluate a model using clearly defined metrics and a reproducible test procedure. Such activities would encourage students to treat AI output as a claim that requires verification, not as an unquestionable answer.",
+          "explanation": "可以使用 evaluate a model / identify problems / raise concerns / address a problem。专业术语要与论证真正相关。",
+          "hint": "Start: Universities should teach ... because ...",
+          "minWords": 135
+        }
+      ]
+    },
+    {
+      "id": "reflection",
+      "title": "06 · Rewrite & Reflect",
+      "subtitle": "比对后修改自己的语言，形成个人错题库。",
+      "durationLabel": "5 min",
+      "minutes": 5,
+      "tasks": [
+        {
+          "id": "d5-15",
+          "type": "write",
+          "prompt": "列出你今天真正用对的 3 组学术搭配，并将其中 1 组放进一个全新的句子里。",
+          "answer": "搭配：evaluate a model; pose a challenge; raise concerns about.\n新句：Evaluating a model on only one benchmark may raise concerns about whether its results generalize to other tasks.",
+          "explanation": "优先积累可迁移的词组，而不是单独背高级单词。",
+          "hint": "Collocations: ...\nNew sentence: ..."
+        }
+      ]
+    }
+  ]
+}

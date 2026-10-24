@@ -1,0 +1,246 @@
+{
+  "day": 3,
+  "slug": "cause-and-effect",
+  "track": "Logical Connections",
+  "title": "Build Real Cause-and-Effect.",
+  "subtitle": "区分 because / due to / contribute to / lead to / therefore。不要只会把两句话用 and 连在一起。",
+  "focus": "原因、机制、结果与限定",
+  "topic": "How does sleep influence academic performance?",
+  "canDo": [
+    "用名词和从句正确表达原因",
+    "把“原因 → 机制 → 结果”写出来",
+    "避免相关性被误写成因果关系"
+  ],
+  "languageKit": [
+    [
+      "contribute to",
+      "促成（原因之一）",
+      "Sleep deprivation can contribute to reduced concentration.",
+      "✗ contribute for"
+    ],
+    [
+      "result in",
+      "导致",
+      "Poor sleep may result in slower reaction times.",
+      "✗ result to"
+    ],
+    [
+      "result from",
+      "由……引起",
+      "Reduced alertness may result from insufficient sleep.",
+      "✗ result in insufficient sleep"
+    ],
+    [
+      "be associated with",
+      "与……相关（不保证因果）",
+      "Short sleep duration is associated with poorer academic outcomes.",
+      "✗ be associated to"
+    ],
+    [
+      "due to",
+      "由于 + 名词短语",
+      "Some students feel tired due to irregular sleep schedules.",
+      "✗ due to they sleep late"
+    ]
+  ],
+  "framework": "Cause → Mechanism → Outcome → Qualification",
+  "coach": "写因果关系时先问：这是“导致”，还是“同时出现/有关联”？不要仅凭相关性断言因果。",
+  "id": "day03",
+  "sections": [
+    {
+      "id": "precision",
+      "title": "01 · Word in Action",
+      "subtitle": "搭配不是死记：辨别词与词如何自然地一起出现。",
+      "durationLabel": "8 min",
+      "minutes": 8,
+      "tasks": [
+        {
+          "id": "d3-01",
+          "type": "choice",
+          "prompt": "Lack of sleep can contribute ___ poor concentration.",
+          "options": [
+            "to",
+            "with",
+            "for"
+          ],
+          "answer": "to",
+          "explanation": "contribute to + 名词或 -ing。"
+        },
+        {
+          "id": "d3-02",
+          "type": "choice",
+          "prompt": "Increased stress may result ___ irregular sleep patterns.",
+          "options": [
+            "from",
+            "in",
+            "at"
+          ],
+          "answer": "from",
+          "explanation": "result from 指由某原因产生；result in 指带来某结果。"
+        },
+        {
+          "id": "d3-03",
+          "type": "choice",
+          "prompt": "Irregular sleep may result ___ lower daytime alertness.",
+          "options": [
+            "in",
+            "from",
+            "of"
+          ],
+          "answer": "in",
+          "explanation": "result in 指导致某结果。"
+        },
+        {
+          "id": "d3-04",
+          "type": "choice",
+          "prompt": "Which is the most cautious scientific claim?",
+          "options": [
+            "Short sleep duration is associated with lower test scores.",
+            "Short sleep duration always causes lower test scores.",
+            "Short sleep duration proves that students are lazy."
+          ],
+          "answer": "Short sleep duration is associated with lower test scores.",
+          "explanation": "相关关系不一定证明因果，is associated with 更审慎。"
+        },
+        {
+          "id": "d3-05",
+          "type": "write",
+          "prompt": "使用 due to + 名词短语，写一句话描述学生第二天疲倦的原因。",
+          "answer": "Some students struggle to concentrate during morning classes due to insufficient sleep.",
+          "explanation": "due to 后应接名词短语，不能直接跟完整陈述句。",
+          "hint": "... due to irregular sleep schedules."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "02 · Build the Sentence",
+      "subtitle": "先把意思写完整，再考虑复杂结构。",
+      "durationLabel": "12 min",
+      "minutes": 12,
+      "tasks": [
+        {
+          "id": "d3-06",
+          "type": "write",
+          "prompt": "中文 → 英文：睡眠不足可能降低学生在课堂上的注意力。",
+          "answer": "Insufficient sleep may reduce students’ ability to concentrate in class.",
+          "explanation": "may 比 will 更谨慎；ability to concentrate 是自然搭配。",
+          "hint": "Insufficient sleep may reduce ..."
+        },
+        {
+          "id": "d3-07",
+          "type": "write",
+          "prompt": "中文 → 英文：不规律的作息可能导致白天的疲倦感。",
+          "answer": "Irregular sleep schedules may result in daytime fatigue.",
+          "explanation": "result in + 结果。",
+          "hint": "Irregular sleep schedules may result in ..."
+        },
+        {
+          "id": "d3-08",
+          "type": "write",
+          "prompt": "中文 → 英文：较差的考试成绩可能与睡眠质量有关。",
+          "answer": "Poorer exam performance may be associated with lower sleep quality.",
+          "explanation": "be associated with 描述关联，避免无依据的确定因果。",
+          "hint": "Exam performance may be associated with ..."
+        }
+      ]
+    },
+    {
+      "id": "rewrite",
+      "title": "03 · Sentence Surgery",
+      "subtitle": "改掉空泛、口语化、冗余的表达。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d3-09",
+          "type": "write",
+          "prompt": "改写逻辑不明确的句子：Students sleep less. Their grades are low.",
+          "answer": "Students who regularly get insufficient sleep may experience poorer academic performance, partly because fatigue can interfere with concentration.",
+          "explanation": "补充机制，避免仅将两件事并排写。",
+          "hint": "What happens between less sleep and lower performance?"
+        },
+        {
+          "id": "d3-10",
+          "type": "write",
+          "prompt": "修复搭配错误：Bad sleep results from problems in attention.（目标意思：睡眠不足导致注意力问题）",
+          "answer": "Insufficient sleep can result in problems with attention.",
+          "explanation": "result from 是“由……造成”，result in 是“造成……”，方向不同。",
+          "hint": "... result in ..."
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "04 · Connect the Logic",
+      "subtitle": "让观点之间有真实逻辑，而不是乱加连接词。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d3-11",
+          "type": "choice",
+          "prompt": "A researcher reports a correlation, not a confirmed cause. Which connector/phrase is safest?",
+          "options": [
+            "is associated with",
+            "definitely leads to",
+            "proves that"
+          ],
+          "answer": "is associated with",
+          "explanation": "学术写作必须区分相关和因果。"
+        },
+        {
+          "id": "d3-12",
+          "type": "write",
+          "prompt": "使用 because 解释机制：Students struggle with complex tasks. They are too tired to maintain attention.",
+          "answer": "Students may struggle with complex tasks because fatigue makes it difficult to maintain attention.",
+          "explanation": "把原因说具体：疲惫影响持续注意力。",
+          "hint": "... because fatigue makes it difficult to ..."
+        },
+        {
+          "id": "d3-13",
+          "type": "write",
+          "prompt": "使用 As a result 写两句：Students follow irregular sleep schedules. They feel less alert during morning lectures.",
+          "answer": "Some students follow irregular sleep schedules. As a result, they may feel less alert during morning lectures.",
+          "explanation": "As a result 连接前句所述原因与后句结果；may 保留合理限定。",
+          "hint": "Sentence 1. As a result, sentence 2."
+        }
+      ]
+    },
+    {
+      "id": "paragraph",
+      "title": "05 · Paragraph Challenge",
+      "subtitle": "独立完成一段有观点、有原因、有例子的英文。",
+      "durationLabel": "15 min",
+      "minutes": 15,
+      "tasks": [
+        {
+          "id": "d3-14",
+          "type": "write",
+          "prompt": "学术段落（130–165 words）：Explain one plausible way poor sleep can influence students’ learning. 写出原因、机制、结果，并加入审慎限定。",
+          "answer": "Insufficient sleep may reduce students’ ability to learn effectively by weakening their concentration during class. When students sleep too little, they may find it harder to remain alert and follow a complex explanation. For example, a student who stays awake late to finish an assignment may attend a mathematics lecture the next morning but struggle to understand each step of a proof. This difficulty can affect how much information the student retains and may make later revision more time-consuming. Over time, repeated problems with attention could contribute to poorer learning outcomes. However, sleep is only one factor that may influence academic performance. Study habits, course difficulty, and individual differences also matter. Therefore, it would be inaccurate to claim that short sleep alone determines students’ grades. A more reasonable conclusion is that maintaining a consistent sleep schedule can support effective learning by improving students’ readiness to concentrate.",
+          "explanation": "必须包含谨慎表达 may / can / could；不要把单一因素写成唯一因果。",
+          "hint": "Use: One way sleep affects learning is ...",
+          "minWords": 130
+        }
+      ]
+    },
+    {
+      "id": "reflection",
+      "title": "06 · Rewrite & Reflect",
+      "subtitle": "比对后修改自己的语言，形成个人错题库。",
+      "durationLabel": "5 min",
+      "minutes": 5,
+      "tasks": [
+        {
+          "id": "d3-15",
+          "type": "write",
+          "prompt": "把自己段落中一句过于绝对的因果判断，改成更审慎且更具体的学术表达。",
+          "answer": "Before: Sleeping less causes students to fail exams.\nAfter: Insufficient sleep may contribute to poorer exam performance by reducing concentration during study sessions.\n修改点：加入 may、contribute to 和中间机制。",
+          "explanation": "学术表达的严谨来自“如何知道、能够说到哪一步”。",
+          "hint": "Before: ...\nAfter: ...\n原因：..."
+        }
+      ]
+    }
+  ]
+}

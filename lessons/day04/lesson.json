@@ -1,0 +1,246 @@
+{
+  "day": 4,
+  "slug": "contrast-and-concession",
+  "track": "Logical Connections",
+  "title": "Contrast Is More Than “But”.",
+  "subtitle": "练习 although、whereas、however、despite、nevertheless，把反对意见变成合理的论证，而非句子拼贴。",
+  "focus": "转折、让步、对比与平衡立场",
+  "topic": "Remote work or office work: which is more effective?",
+  "canDo": [
+    "清楚表达不同条件下的优缺点",
+    "区分 despite 后接名词与 although 后接从句",
+    "从反对意见回到自己的观点"
+  ],
+  "languageKit": [
+    [
+      "although + clause",
+      "虽然……（后跟完整从句）",
+      "Although remote work is flexible, it can limit informal collaboration.",
+      "✗ although ... but ..."
+    ],
+    [
+      "despite + noun/-ing",
+      "尽管……",
+      "Despite its convenience, remote work has limitations.",
+      "✗ despite it is convenient"
+    ],
+    [
+      "whereas",
+      "而；然而（对照）",
+      "Remote work reduces commuting time, whereas office work enables face-to-face interaction.",
+      "✗ whereas but"
+    ],
+    [
+      "nevertheless",
+      "尽管如此",
+      "Remote work can be isolating. Nevertheless, it remains valuable for focused tasks.",
+      "✗ nevertheless ... but"
+    ],
+    [
+      "strike a balance between",
+      "在两者之间取得平衡",
+      "Hybrid schedules may strike a balance between flexibility and collaboration.",
+      "✗ make balance with"
+    ]
+  ],
+  "framework": "Acknowledge → Contrast → Condition → Position",
+  "coach": "连接词不能替代思考。先写出两种主张各自成立的条件，再用连接语法展示关系。",
+  "id": "day04",
+  "sections": [
+    {
+      "id": "precision",
+      "title": "01 · Word in Action",
+      "subtitle": "搭配不是死记：辨别词与词如何自然地一起出现。",
+      "durationLabel": "8 min",
+      "minutes": 8,
+      "tasks": [
+        {
+          "id": "d4-01",
+          "type": "choice",
+          "prompt": "___ remote work reduces commuting time, it can make spontaneous teamwork harder.",
+          "options": [
+            "Although",
+            "Despite",
+            "Whereas of"
+          ],
+          "answer": "Although",
+          "explanation": "although 后跟完整从句。"
+        },
+        {
+          "id": "d4-02",
+          "type": "choice",
+          "prompt": "___ its flexibility, remote work may cause isolation.",
+          "options": [
+            "Despite",
+            "Although",
+            "However"
+          ],
+          "answer": "Despite",
+          "explanation": "despite + 名词短语 its flexibility。"
+        },
+        {
+          "id": "d4-03",
+          "type": "choice",
+          "prompt": "Remote work saves commuting time, ___ office work enables spontaneous conversations.",
+          "options": [
+            "whereas",
+            "because",
+            "therefore"
+          ],
+          "answer": "whereas",
+          "explanation": "whereas 表示两者对比。"
+        },
+        {
+          "id": "d4-04",
+          "type": "choice",
+          "prompt": "Hybrid policies can strike a balance ___ flexibility and collaboration.",
+          "options": [
+            "between",
+            "among to",
+            "with to"
+          ],
+          "answer": "between",
+          "explanation": "strike a balance between A and B。"
+        },
+        {
+          "id": "d4-05",
+          "type": "write",
+          "prompt": "用 nevertheless 写两个句子：远程工作有问题，但依然值得考虑。",
+          "answer": "Remote work can make informal communication more difficult. Nevertheless, it remains a useful option for tasks that require concentration.",
+          "explanation": "nevertheless 是句间连接副词，注意标点。",
+          "hint": "... . Nevertheless, ..."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "02 · Build the Sentence",
+      "subtitle": "先把意思写完整，再考虑复杂结构。",
+      "durationLabel": "12 min",
+      "minutes": 12,
+      "tasks": [
+        {
+          "id": "d4-06",
+          "type": "write",
+          "prompt": "中文 → 英文：虽然在家办公很灵活，但它有时会限制团队交流。",
+          "answer": "Although working from home is flexible, it can sometimes limit communication within a team.",
+          "explanation": "although ... , ...；不要再加 but。",
+          "hint": "Although ..., ..."
+        },
+        {
+          "id": "d4-07",
+          "type": "write",
+          "prompt": "中文 → 英文：面对面交流对于需要密切合作的项目尤其重要。",
+          "answer": "Face-to-face communication is particularly important for projects that require close collaboration.",
+          "explanation": "particularly important for；projects that require ... 是限制性定语从句。",
+          "hint": "Face-to-face communication is particularly ..."
+        },
+        {
+          "id": "d4-08",
+          "type": "write",
+          "prompt": "中文 → 英文：不同工作需要不同的工作环境。",
+          "answer": "Different types of work require different working environments.",
+          "explanation": "简单句也能精确，关键在 types of work 与 environments。",
+          "hint": "Different types of work require ..."
+        }
+      ]
+    },
+    {
+      "id": "rewrite",
+      "title": "03 · Sentence Surgery",
+      "subtitle": "改掉空泛、口语化、冗余的表达。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d4-09",
+          "type": "write",
+          "prompt": "修复结构错误：Despite remote work is convenient, it has disadvantages.",
+          "answer": "Although remote work is convenient, it has disadvantages.",
+          "explanation": "或 Despite the convenience of remote work, it has disadvantages.；despite 不接完整陈述句。",
+          "hint": "Choose Although + clause or Despite + noun."
+        },
+        {
+          "id": "d4-10",
+          "type": "write",
+          "prompt": "改写空泛表达：Office work is better, but remote work is good too.",
+          "answer": "Office work may be more effective for collaborative tasks, whereas remote work can be better suited to concentrated individual work.",
+          "explanation": "给“好”加适用条件，而非泛泛比较。",
+          "hint": "Where is each option most effective?"
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "04 · Connect the Logic",
+      "subtitle": "让观点之间有真实逻辑，而不是乱加连接词。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d4-11",
+          "type": "choice",
+          "prompt": "One sentence compares two different contexts. Which connector fits best?",
+          "options": [
+            "whereas",
+            "as a result",
+            "because"
+          ],
+          "answer": "whereas",
+          "explanation": "并列对照不同场景用 whereas。"
+        },
+        {
+          "id": "d4-12",
+          "type": "write",
+          "prompt": "用 despite 合并：Remote work offers flexibility. It can still create communication challenges.",
+          "answer": "Despite offering flexibility, remote work can create communication challenges.",
+          "explanation": "despite + V-ing（名词性结构）。",
+          "hint": "Despite + -ing ..., ..."
+        },
+        {
+          "id": "d4-13",
+          "type": "write",
+          "prompt": "连接“承认对方优点”与“坚持自己立场”：In-person meetings build trust. Most independent tasks do not require daily office attendance.",
+          "answer": "Although in-person meetings can help build trust, most independent tasks do not require employees to attend the office every day.",
+          "explanation": "先让步再提出主张，避免逻辑跳跃。",
+          "hint": "Although ..., ..."
+        }
+      ]
+    },
+    {
+      "id": "paragraph",
+      "title": "05 · Paragraph Challenge",
+      "subtitle": "独立完成一段有观点、有原因、有例子的英文。",
+      "durationLabel": "15 min",
+      "minutes": 15,
+      "tasks": [
+        {
+          "id": "d4-14",
+          "type": "write",
+          "prompt": "学术段落（130–165 words）：Should a company adopt a hybrid work policy? 承认一个反面论点，解释不同任务需要不同安排，再给出自己的建议。",
+          "answer": "A hybrid work policy may be more effective than requiring employees to work exclusively from home or in an office. Remote work allows employees to avoid commuting and focus on tasks that require sustained attention. For example, a software developer may write and test code more efficiently in a quiet environment. However, office work can support spontaneous discussions that are difficult to reproduce online. This advantage is especially important when team members need to solve an unfamiliar problem together. Although some managers may prefer a fixed schedule because it is easier to monitor, physical attendance does not always reflect productivity. Companies should therefore strike a balance between individual concentration and collaborative needs. They could schedule in-person meetings for tasks that benefit from rapid discussion while allowing remote work for independent assignments. A flexible policy based on the nature of each task is likely to be more useful than a single rule for everyone.",
+          "explanation": "用“根据任务性质”作为中心线索，让段落的每句话都支持它。",
+          "hint": "Start: A hybrid policy may offer ...",
+          "minWords": 130
+        }
+      ]
+    },
+    {
+      "id": "reflection",
+      "title": "06 · Rewrite & Reflect",
+      "subtitle": "比对后修改自己的语言，形成个人错题库。",
+      "durationLabel": "5 min",
+      "minutes": 5,
+      "tasks": [
+        {
+          "id": "d4-15",
+          "type": "write",
+          "prompt": "找出你段落里一个转折句，检查是否真正体现对比，而不仅是加了 however。重新改写。",
+          "answer": "Before: Remote work is convenient. However, the company is successful.\nAfter: Remote work reduces commuting time; however, it may limit informal communication among new team members.\n修改点：两句针对同一维度作比较。",
+          "explanation": "转折的两个内容必须有可比较或相冲突的关系。",
+          "hint": "Before: ...\nAfter: ...\n逻辑关系：..."
+        }
+      ]
+    }
+  ]
+}

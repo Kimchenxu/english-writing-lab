@@ -1,0 +1,246 @@
+{
+  "day": 6,
+  "slug": "claim-evidence-reasoning",
+  "track": "Argument Building",
+  "title": "A Paragraph Needs a Reasoning Chain.",
+  "subtitle": "从“我觉得好”升级为 claim → evidence → reasoning → qualification。用证据解释论点，而不是堆高大上的词。",
+  "focus": "主张、例证、解释与反例",
+  "topic": "Do group projects improve university learning?",
+  "canDo": [
+    "区分 claim、evidence 和 reasoning",
+    "解释例子为什么支持观点",
+    "使用支持、削弱与限定的常见学术动词"
+  ],
+  "languageKit": [
+    [
+      "support a claim",
+      "支持一个主张",
+      "Specific examples can support a claim, but do not prove it alone.",
+      "✗ support for a claim 作为及物结构"
+    ],
+    [
+      "provide evidence for",
+      "为……提供证据",
+      "The results provide evidence for the proposed explanation.",
+      "✗ give an evidence"
+    ],
+    [
+      "draw a conclusion",
+      "得出结论",
+      "It is risky to draw a broad conclusion from one example.",
+      "✗ make a conclusion"
+    ],
+    [
+      "account for",
+      "解释；占……比例",
+      "Unequal workloads may account for differences in group satisfaction.",
+      "✗ account to"
+    ],
+    [
+      "a potential limitation",
+      "潜在局限",
+      "A potential limitation is that group tasks may encourage free-riding.",
+      "✗ limited point"
+    ]
+  ],
+  "framework": "Claim → Example → Why the example matters → Limit",
+  "coach": "写段落前先用一句中文说清“为什么这个例子能证明观点”；如果说不清，说明你缺少 reasoning。",
+  "id": "day06",
+  "sections": [
+    {
+      "id": "precision",
+      "title": "01 · Word in Action",
+      "subtitle": "搭配不是死记：辨别词与词如何自然地一起出现。",
+      "durationLabel": "8 min",
+      "minutes": 8,
+      "tasks": [
+        {
+          "id": "d6-01",
+          "type": "choice",
+          "prompt": "A single example rarely ___ a broad conclusion.",
+          "options": [
+            "justifies",
+            "does",
+            "creates"
+          ],
+          "answer": "justifies",
+          "explanation": "justify a conclusion = 使结论有充分依据。"
+        },
+        {
+          "id": "d6-02",
+          "type": "choice",
+          "prompt": "The survey ___ evidence for the proposed explanation.",
+          "options": [
+            "provides",
+            "gives an",
+            "draws"
+          ],
+          "answer": "provides",
+          "explanation": "provide evidence for；evidence 通常不可数。"
+        },
+        {
+          "id": "d6-03",
+          "type": "choice",
+          "prompt": "Researchers should avoid drawing a conclusion ___ a small sample alone.",
+          "options": [
+            "from",
+            "at",
+            "with"
+          ],
+          "answer": "from",
+          "explanation": "draw a conclusion from + evidence/data。"
+        },
+        {
+          "id": "d6-04",
+          "type": "choice",
+          "prompt": "Which sentence is an example, not a claim?",
+          "options": [
+            "In one group, members reviewed each other’s code before submission.",
+            "Group work always improves learning.",
+            "Collaboration is important."
+          ],
+          "answer": "In one group, members reviewed each other’s code before submission.",
+          "explanation": "具体行为属于 example/evidence；另外两句是较泛的 claim。"
+        },
+        {
+          "id": "d6-05",
+          "type": "write",
+          "prompt": "用 a potential limitation 写一句话，指出小组作业可能出现的问题。",
+          "answer": "A potential limitation of group assignments is that some members may contribute less work than others.",
+          "explanation": "a limitation of + 名词；使用 may 避免绝对化。",
+          "hint": "A potential limitation of group projects is ..."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "02 · Build the Sentence",
+      "subtitle": "先把意思写完整，再考虑复杂结构。",
+      "durationLabel": "12 min",
+      "minutes": 12,
+      "tasks": [
+        {
+          "id": "d6-06",
+          "type": "write",
+          "prompt": "中文 → 英文：明确的分工有助于小组成员承担责任。",
+          "answer": "Clearly defined responsibilities can help group members remain accountable for their contributions.",
+          "explanation": "remain accountable for；contributions 指个人投入。",
+          "hint": "Clearly defined responsibilities can ..."
+        },
+        {
+          "id": "d6-07",
+          "type": "write",
+          "prompt": "中文 → 英文：单个成功案例不足以证明所有小组作业都有效。",
+          "answer": "A single successful example is not sufficient to show that all group projects are effective.",
+          "explanation": "not sufficient to show that ...；别把例子当作证明。",
+          "hint": "A single example is not sufficient to ..."
+        },
+        {
+          "id": "d6-08",
+          "type": "write",
+          "prompt": "中文 → 英文：同伴反馈能帮助学生发现自己忽略的问题。",
+          "answer": "Peer feedback can help students identify problems they may have overlooked.",
+          "explanation": "peer feedback 是自然搭配；have overlooked 表示之前忽略。",
+          "hint": "Peer feedback can help ..."
+        }
+      ]
+    },
+    {
+      "id": "rewrite",
+      "title": "03 · Sentence Surgery",
+      "subtitle": "改掉空泛、口语化、冗余的表达。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d6-09",
+          "type": "write",
+          "prompt": "补全“论据到观点”的推理：My friend liked a group project. Therefore, group projects are always better.",
+          "answer": "My friend’s positive experience suggests that group projects can be helpful in some contexts, but one example does not establish that they are always superior.",
+          "explanation": "例子不能直接推出普遍性结论。",
+          "hint": "One experience may suggest ..., but it cannot prove ..."
+        },
+        {
+          "id": "d6-10",
+          "type": "write",
+          "prompt": "把空泛句变成可讨论的主张：Group work is helpful.",
+          "answer": "Group work can improve students’ understanding when teammates explain different approaches to solving a problem.",
+          "explanation": "增加条件 when 和作用机制 explain different approaches。",
+          "hint": "Group work can improve ... when ..."
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "04 · Connect the Logic",
+      "subtitle": "让观点之间有真实逻辑，而不是乱加连接词。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d6-11",
+          "type": "choice",
+          "prompt": "Claim: Peer review improves understanding. What sentence best supplies reasoning?",
+          "options": [
+            "Explaining feedback forces students to check their own assumptions.",
+            "Peer review is interesting.",
+            "There are many kinds of projects."
+          ],
+          "answer": "Explaining feedback forces students to check their own assumptions.",
+          "explanation": "reasoning 是解释为什么例子/措施会产生效果。"
+        },
+        {
+          "id": "d6-12",
+          "type": "write",
+          "prompt": "将“例子 → 解释”连接起来：Students review teammates’ code. They must explain why they suggest changes.",
+          "answer": "When students review their teammates’ code, they must explain why they suggest changes, which can deepen their understanding of the code.",
+          "explanation": "加入 which can deepen ... 明确学习机制。",
+          "hint": "When ..., ... , which ..."
+        },
+        {
+          "id": "d6-13",
+          "type": "write",
+          "prompt": "写两句承认局限并提出条件：Unequal participation can undermine group projects. Clear role assignments may reduce this problem.",
+          "answer": "Unequal participation can undermine the benefits of group work. However, clearly defined responsibilities may help reduce this problem.",
+          "explanation": "对策和问题之间要有对应关系。",
+          "hint": "Problem. However, condition/solution."
+        }
+      ]
+    },
+    {
+      "id": "paragraph",
+      "title": "05 · Paragraph Challenge",
+      "subtitle": "独立完成一段有观点、有原因、有例子的英文。",
+      "durationLabel": "15 min",
+      "minutes": 15,
+      "tasks": [
+        {
+          "id": "d6-14",
+          "type": "write",
+          "prompt": "学术段落（140–175 words）：Do group projects help university students learn? 写出 claim + 一个具体例子 + “为什么支持论点”的解释 + 一项局限及对策。",
+          "answer": "Group projects can improve university learning when tasks require students to explain and compare different approaches. In a programming course, for example, several students might review one another’s code and discuss why a particular algorithm is more efficient. This process can reveal errors that an individual student did not notice and encourage everyone to justify their design choices. The educational value comes not simply from dividing the work, but from examining alternative solutions and responding to feedback. However, a potential limitation is that group members may contribute unequally. If one person completes most of the assignment, the others may learn very little. Instructors can address this problem by assigning clear roles, requiring brief individual reflections, and assessing both the final project and each student’s contribution. Under these conditions, group work can support deeper understanding, although it is not automatically more effective than independent study.",
+          "explanation": "核心是 explaining why；不要只列出一个例子然后直接总结。",
+          "hint": "Start with: Group projects can help students learn when ...",
+          "minWords": 140
+        }
+      ]
+    },
+    {
+      "id": "reflection",
+      "title": "06 · Rewrite & Reflect",
+      "subtitle": "比对后修改自己的语言，形成个人错题库。",
+      "durationLabel": "5 min",
+      "minutes": 5,
+      "tasks": [
+        {
+          "id": "d6-15",
+          "type": "write",
+          "prompt": "写出你正文中的 claim、evidence、reasoning 各一句；如果缺少 reasoning，补写一句。",
+          "answer": "Claim: Group work can deepen students’ understanding.\nEvidence: Teammates may review one another’s code.\nReasoning: Explaining why a solution works forces students to articulate their reasoning and notice gaps in their knowledge.",
+          "explanation": "把“例子”与“为什么支持观点”拆开来检验。",
+          "hint": "Claim: ...\nExample: ...\nReasoning: ..."
+        }
+      ]
+    }
+  ]
+}

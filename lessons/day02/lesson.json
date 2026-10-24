@@ -1,0 +1,246 @@
+{
+  "day": 2,
+  "slug": "complete-precise-sentences",
+  "track": "Sentence Control",
+  "title": "A Simple Sentence Can Be Precise.",
+  "subtitle": "不再看不起简单句：练习把主语、动作、对象、条件和范围写得清楚，再把句子写得更像学术英文。",
+  "focus": "句子完整性 + 搭配 + 具体信息",
+  "topic": "Should universities require students to attend every class?",
+  "canDo": [
+    "辨别语义清晰与空泛表述",
+    "学会 take into account / gain access to / address a problem",
+    "为观点添加对象、条件和适用范围"
+  ],
+  "languageKit": [
+    [
+      "take ... into account",
+      "考虑……因素",
+      "Universities should take students’ different circumstances into account.",
+      "✗ consider about"
+    ],
+    [
+      "gain access to",
+      "获得使用……的机会",
+      "Recorded lectures help students gain access to course materials.",
+      "✗ access to the material 作为动词"
+    ],
+    [
+      "address a problem",
+      "解决/处理一个问题",
+      "Flexible attendance policies may address this problem.",
+      "✗ solve to a problem"
+    ],
+    [
+      "play a role in",
+      "在……中发挥作用",
+      "Class participation plays a role in collaborative learning.",
+      "✗ play a role on"
+    ],
+    [
+      "meet a requirement",
+      "符合某项要求",
+      "Students must meet attendance requirements to receive credit.",
+      "✗ satisfy to requirements"
+    ]
+  ],
+  "framework": "Position → Scope → Mechanism → Counterexample",
+  "coach": "“复杂”不等于“清楚”。先控制每个句子的主体、谓语和具体内容，再考虑从句。",
+  "id": "day02",
+  "sections": [
+    {
+      "id": "precision",
+      "title": "01 · Word in Action",
+      "subtitle": "搭配不是死记：辨别词与词如何自然地一起出现。",
+      "durationLabel": "8 min",
+      "minutes": 8,
+      "tasks": [
+        {
+          "id": "d2-01",
+          "type": "choice",
+          "prompt": "Universities should take students’ needs ___ account.",
+          "options": [
+            "into",
+            "on",
+            "with"
+          ],
+          "answer": "into",
+          "explanation": "固定搭配 take ... into account。"
+        },
+        {
+          "id": "d2-02",
+          "type": "choice",
+          "prompt": "Recorded lectures help students gain access ___ learning materials.",
+          "options": [
+            "to",
+            "for",
+            "at"
+          ],
+          "answer": "to",
+          "explanation": "gain access to + 名词。"
+        },
+        {
+          "id": "d2-03",
+          "type": "choice",
+          "prompt": "A flexible policy could ___ the problem of students missing class for medical reasons.",
+          "options": [
+            "address",
+            "meet",
+            "conduct"
+          ],
+          "answer": "address",
+          "explanation": "address a problem/concern/challenge。"
+        },
+        {
+          "id": "d2-04",
+          "type": "choice",
+          "prompt": "Students are expected to ___ course requirements.",
+          "options": [
+            "meet",
+            "make",
+            "hold"
+          ],
+          "answer": "meet",
+          "explanation": "meet requirements / meet a deadline。"
+        },
+        {
+          "id": "d2-05",
+          "type": "write",
+          "prompt": "用 play a role in 写一句话，解释为什么课堂讨论重要。",
+          "answer": "Classroom discussions play an important role in helping students evaluate different perspectives.",
+          "explanation": "play a role in + 名词/-ing；evaluate perspectives 是较自然的学术表达。",
+          "hint": "Classroom discussions play a role in ..."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "02 · Build the Sentence",
+      "subtitle": "先把意思写完整，再考虑复杂结构。",
+      "durationLabel": "12 min",
+      "minutes": 12,
+      "tasks": [
+        {
+          "id": "d2-06",
+          "type": "write",
+          "prompt": "中文 → 英文：录播课程帮助因兼职而缺课的学生跟上进度。",
+          "answer": "Recorded lectures help students who miss class because of part-time work keep up with the course.",
+          "explanation": "who miss class ... 修饰 students；keep up with the course 是自然搭配。",
+          "hint": "Recorded lectures help students who ..."
+        },
+        {
+          "id": "d2-07",
+          "type": "write",
+          "prompt": "中文 → 英文：学校应考虑学生不同的个人情况。",
+          "answer": "Universities should take students’ different personal circumstances into account.",
+          "explanation": "circumstances 通常为复数；take ... into account。",
+          "hint": "Universities should take ... into account."
+        },
+        {
+          "id": "d2-08",
+          "type": "write",
+          "prompt": "中文 → 英文：出勤率并不总能准确反映学生的学习投入程度。",
+          "answer": "Attendance does not always accurately reflect how engaged students are in their learning.",
+          "explanation": "reflect ... accurately，避免“attendance = learning”混为一谈。",
+          "hint": "Attendance does not always reflect ..."
+        }
+      ]
+    },
+    {
+      "id": "rewrite",
+      "title": "03 · Sentence Surgery",
+      "subtitle": "改掉空泛、口语化、冗余的表达。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d2-09",
+          "type": "write",
+          "prompt": "修改不完整的句子：Because students have different schedules.",
+          "answer": "Because students have different schedules, universities should offer flexible attendance options.",
+          "explanation": "单独的 because 从句在正式写作中通常是不完整句，需要主句。",
+          "hint": "Because ..., ... ."
+        },
+        {
+          "id": "d2-10",
+          "type": "write",
+          "prompt": "改写空泛句：Rules are bad for some students.",
+          "answer": "Strict attendance requirements may disadvantage students who have part-time jobs or family responsibilities.",
+          "explanation": "把 rules 和 bad 具体化：什么规定，影响谁，如何影响？",
+          "hint": "Strict attendance requirements may ..."
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "04 · Connect the Logic",
+      "subtitle": "让观点之间有真实逻辑，而不是乱加连接词。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d2-11",
+          "type": "choice",
+          "prompt": "Choose the most logical transition: Attendance may encourage participation. ___, it does not guarantee meaningful learning.",
+          "options": [
+            "However",
+            "Therefore",
+            "For instance"
+          ],
+          "answer": "However",
+          "explanation": "前后存在让步/转折。"
+        },
+        {
+          "id": "d2-12",
+          "type": "write",
+          "prompt": "使用 although 合并：Class attendance can be useful. Mandatory attendance policies may be unfair.",
+          "answer": "Although attending class can be useful, mandatory attendance policies may be unfair to some students.",
+          "explanation": "Although 放句首时要有主句；不要用 although ... but ...。",
+          "hint": "Although ... , ... ."
+        },
+        {
+          "id": "d2-13",
+          "type": "write",
+          "prompt": "使用 for example 扩展观点：Attendance should not be the only measure of engagement.",
+          "answer": "Attendance should not be the only measure of engagement. For example, a student may learn actively from recorded lectures while missing a live session.",
+          "explanation": "例子应直接支持 measure of engagement 的观点。",
+          "hint": "For example, a student who ..."
+        }
+      ]
+    },
+    {
+      "id": "paragraph",
+      "title": "05 · Paragraph Challenge",
+      "subtitle": "独立完成一段有观点、有原因、有例子的英文。",
+      "durationLabel": "15 min",
+      "minutes": 15,
+      "tasks": [
+        {
+          "id": "d2-14",
+          "type": "write",
+          "prompt": "学术段落（125–155 words）：Should universities require attendance in every class? 写出你的立场、条件、一个反例，并解释规则应该如何设计。",
+          "answer": "Universities should encourage regular attendance, but a universal requirement may not be appropriate for every course. In discussion-based seminars, attending class allows students to exchange ideas and practice explaining their reasoning. However, the same rule may be less useful in a large lecture where students can access the material through high-quality recordings. For example, a student with a part-time job might learn effectively by watching a recorded lecture and completing the assigned exercises. A strict attendance policy could penalize this student even when their learning outcomes are strong. Universities should therefore take the nature of each course and students’ circumstances into account. Instead of measuring participation only through physical presence, instructors could combine attendance with quizzes, projects, and meaningful discussion tasks. This approach would maintain academic expectations while giving students reasonable flexibility.",
+          "explanation": "注意一段只论证一个中心论点；给不同课程设置范围与条件，比绝对化观点更成熟。",
+          "hint": "Start: Universities should ..., but ...",
+          "minWords": 125
+        }
+      ]
+    },
+    {
+      "id": "reflection",
+      "title": "06 · Rewrite & Reflect",
+      "subtitle": "比对后修改自己的语言，形成个人错题库。",
+      "durationLabel": "5 min",
+      "minutes": 5,
+      "tasks": [
+        {
+          "id": "d2-15",
+          "type": "write",
+          "prompt": "挑出你段落里一个没有明确对象、条件或机制的句子，重新写得更精确。",
+          "answer": "Before: Attendance is important.\nAfter: Regular attendance is particularly important in seminars that depend on active discussion among students.\n修改点：限定适用范围，并说明为何重要。",
+          "explanation": "精准不等于句子越长越好，而是减少含糊。",
+          "hint": "Before: ...\nAfter: ...\n改动理由：..."
+        }
+      ]
+    }
+  ]
+}

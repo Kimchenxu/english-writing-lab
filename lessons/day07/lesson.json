@@ -1,0 +1,246 @@
+{
+  "day": 7,
+  "slug": "integrated-writing-challenge",
+  "track": "Integration",
+  "title": "Your First Serious Academic Paragraph.",
+  "subtitle": "一周整合训练：没有孤立知识点提示，也没有花哨大词。你需要自己选词、组织结构、解释逻辑并修改。",
+  "focus": "独立表达 + 论证整合 + 句级精修",
+  "topic": "Should universities assess students mainly through exams or projects?",
+  "canDo": [
+    "主动提取本周的 10+ 组学术搭配",
+    "写一段 160–210 词的完整论证",
+    "完成一次有依据的自我修改"
+  ],
+  "languageKit": [
+    [
+      "assess learning outcomes",
+      "评估学习成果",
+      "Exams and projects assess different learning outcomes.",
+      "✗ test outcomes about"
+    ],
+    [
+      "demonstrate understanding",
+      "展示理解",
+      "Open-ended projects allow students to demonstrate understanding.",
+      "✗ show an understanding about（语境不同）"
+    ],
+    [
+      "under time pressure",
+      "在时间压力下",
+      "Timed exams require students to perform under time pressure.",
+      "✗ in time pressure"
+    ],
+    [
+      "measure performance",
+      "衡量表现",
+      "A single test may not fully measure performance.",
+      "✗ measure on performance"
+    ],
+    [
+      "be better suited to",
+      "更适合……",
+      "Projects may be better suited to evaluating practical skills.",
+      "✗ be better fit on"
+    ]
+  ],
+  "framework": "Qualified claim → Two criteria → Concrete example → Counterargument → Balanced conclusion",
+  "coach": "本次不是背答案，而是检查你是否能主动使用基础句子、准确搭配、合适连接词和完整论证。",
+  "id": "day07",
+  "sections": [
+    {
+      "id": "precision",
+      "title": "01 · Word in Action",
+      "subtitle": "搭配不是死记：辨别词与词如何自然地一起出现。",
+      "durationLabel": "8 min",
+      "minutes": 8,
+      "tasks": [
+        {
+          "id": "d7-01",
+          "type": "choice",
+          "prompt": "A project can help students ___ their understanding through practical work.",
+          "options": [
+            "demonstrate",
+            "make",
+            "bring"
+          ],
+          "answer": "demonstrate",
+          "explanation": "demonstrate understanding 是学术常用搭配。"
+        },
+        {
+          "id": "d7-02",
+          "type": "choice",
+          "prompt": "Timed exams require students to perform ___ time pressure.",
+          "options": [
+            "under",
+            "on",
+            "below"
+          ],
+          "answer": "under",
+          "explanation": "固定搭配 under time pressure。"
+        },
+        {
+          "id": "d7-03",
+          "type": "choice",
+          "prompt": "Hands-on projects may be better suited ___ assessing practical skills.",
+          "options": [
+            "to",
+            "for to",
+            "with"
+          ],
+          "answer": "to",
+          "explanation": "be suited to + 名词/-ing。"
+        },
+        {
+          "id": "d7-04",
+          "type": "choice",
+          "prompt": "Which sentence is best qualified rather than absolute?",
+          "options": [
+            "Projects can assess practical skills that written exams may overlook.",
+            "Projects always measure everything better.",
+            "Exams never reveal understanding."
+          ],
+          "answer": "Projects can assess practical skills that written exams may overlook.",
+          "explanation": "academic claims 要根据证据和适用范围控制强度。"
+        },
+        {
+          "id": "d7-05",
+          "type": "write",
+          "prompt": "用 assess learning outcomes 写一句话：考试与项目适合衡量不同能力。",
+          "answer": "Exams and projects can assess different learning outcomes, so universities should not rely exclusively on one method.",
+          "explanation": "不同评价工具衡量不同维度，这是后文论证的基础。",
+          "hint": "Exams and projects can assess ..."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "02 · Build the Sentence",
+      "subtitle": "先把意思写完整，再考虑复杂结构。",
+      "durationLabel": "12 min",
+      "minutes": 12,
+      "tasks": [
+        {
+          "id": "d7-06",
+          "type": "write",
+          "prompt": "中文 → 英文：限时考试可以考查学生在压力下独立解决问题的能力。",
+          "answer": "Timed exams can assess students’ ability to solve problems independently under time pressure.",
+          "explanation": "assess ability to ...；independently 与 under time pressure 定位清晰。",
+          "hint": "Timed exams can assess ..."
+        },
+        {
+          "id": "d7-07",
+          "type": "write",
+          "prompt": "中文 → 英文：项目作业让学生把课堂上的知识应用到实际问题上。",
+          "answer": "Projects allow students to apply what they learn in class to practical problems.",
+          "explanation": "apply A to B；what they learn in class 是宾语从句。",
+          "hint": "Projects allow students to apply ... to ..."
+        },
+        {
+          "id": "d7-08",
+          "type": "write",
+          "prompt": "中文 → 英文：单一的评分方式可能忽略学生能力的重要差异。",
+          "answer": "A single assessment method may overlook important differences in students’ abilities.",
+          "explanation": "assessment method / overlook differences 是自然搭配。",
+          "hint": "A single assessment method may ..."
+        }
+      ]
+    },
+    {
+      "id": "rewrite",
+      "title": "03 · Sentence Surgery",
+      "subtitle": "改掉空泛、口语化、冗余的表达。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d7-09",
+          "type": "write",
+          "prompt": "把观点从口语化改成学术化：Exams are terrible and projects are awesome.",
+          "answer": "Projects may be better suited to assessing practical problem-solving, whereas exams can evaluate individual performance under standardized conditions.",
+          "explanation": "不给出绝对判断，明确两种工具各自适合衡量什么。",
+          "hint": "Identify what each assessment method measures."
+        },
+        {
+          "id": "d7-10",
+          "type": "write",
+          "prompt": "修复“并列而不解释”的句子：Projects take a lot of time. They help people learn.",
+          "answer": "Although projects can require considerable time, they may deepen students’ understanding by allowing them to apply concepts to realistic problems.",
+          "explanation": "让步 + 具体学习机制。",
+          "hint": "Although ..., they may ... by ..."
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "04 · Connect the Logic",
+      "subtitle": "让观点之间有真实逻辑，而不是乱加连接词。",
+      "durationLabel": "10 min",
+      "minutes": 10,
+      "tasks": [
+        {
+          "id": "d7-11",
+          "type": "choice",
+          "prompt": "Claim: An exam measures independent knowledge; a project measures collaboration. The relation is primarily ___.",
+          "options": [
+            "comparison",
+            "cause",
+            "definition"
+          ],
+          "answer": "comparison",
+          "explanation": "这是评价维度不同的对比，不是直接因果。"
+        },
+        {
+          "id": "d7-12",
+          "type": "write",
+          "prompt": "用 whereas 合并并保留逻辑：Exams can measure recall under time pressure. Projects can demonstrate long-term planning.",
+          "answer": "Exams can measure students’ recall under time pressure, whereas projects can demonstrate their ability to plan and solve problems over time.",
+          "explanation": "比较两个方法的评价维度，不要偏离话题。",
+          "hint": "Exams ..., whereas projects ... ."
+        },
+        {
+          "id": "d7-13",
+          "type": "write",
+          "prompt": "用 although 承认反对意见，再回到混合评价立场：Project grading can be subjective. A combination of exams and projects is still useful.",
+          "answer": "Although grading projects can be subjective, combining exams and projects can provide a more balanced assessment of students’ abilities.",
+          "explanation": "承认风险，给出平衡结论。",
+          "hint": "Although ..., a combination ... ."
+        }
+      ]
+    },
+    {
+      "id": "paragraph",
+      "title": "05 · Paragraph Challenge",
+      "subtitle": "独立完成一段有观点、有原因、有例子的英文。",
+      "durationLabel": "15 min",
+      "minutes": 15,
+      "tasks": [
+        {
+          "id": "d7-14",
+          "type": "write",
+          "prompt": "最终整合写作（160–210 words）：Should universities rely mainly on exams or projects? 请用 2 个清晰评价标准、1 个具体案例、1 个反对意见和回应，给出平衡结论。",
+          "answer": "Universities should combine examinations and projects because the two methods assess different aspects of student learning. Timed exams are useful for evaluating whether students can solve problems independently under standardized conditions. However, they may not fully measure how well students can apply knowledge to open-ended tasks. Projects, by contrast, allow students to demonstrate planning, research, and collaboration skills over a longer period. For example, a computer science project may require students to design a small system, test its reliability, and explain their technical decisions. These activities reveal abilities that are difficult to assess through short exam questions alone. Nevertheless, project grades can be influenced by unequal team contributions or subjective evaluation. Universities can address these limitations by requiring individual progress reports and using clear assessment criteria. Although examinations remain valuable for checking foundational knowledge, they should not be treated as the only indicator of ability. A balanced assessment system can provide a more complete picture of both individual understanding and practical performance.",
+          "explanation": "参考只是范例：用“不同工具衡量不同学习成果”贯穿全文，而非把好处和坏处杂乱堆砌。",
+          "hint": "Plan 4 moves: stance → exams → projects/example → concern + balance.",
+          "minWords": 160
+        }
+      ]
+    },
+    {
+      "id": "reflection",
+      "title": "06 · Rewrite & Reflect",
+      "subtitle": "比对后修改自己的语言，形成个人错题库。",
+      "durationLabel": "5 min",
+      "minutes": 5,
+      "tasks": [
+        {
+          "id": "d7-15",
+          "type": "write",
+          "prompt": "一周审稿：写出你本周最常犯的 3 种写作错误，每种配一个修改后的英文例句。",
+          "answer": "1. Vague words: “Technology is good.” → “Digital tools can provide immediate feedback on drafts.”\n2. Wrong collocation: “make a research” → “conduct research.”\n3. Logical jump: “Students like projects; therefore projects are better.” → “Projects may support applied learning when students must justify design decisions.”",
+          "explanation": "这是自我诊断，不是标准唯一答案。完成后把真正的错题收进下周词组清单。",
+          "hint": "1. ...\n2. ...\n3. ..."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "siteTitle": "WriteLab",
+  "subTitle": "English Writing Gym",
+  "heroTitle": "You know the words. Now make them work.",
+  "heroDescription": "不是继续背“高级词汇”，而是每天用 60 分钟练习：搭配 → 精准造句 → 改写 → 逻辑连接 → 学术段落 → 重写。",
+  "plannedDays": 28,
+  "weeks": [
+    {
+      "name": "WEEK 01",
+      "headline": "把词写进准确的句子",
+      "days": "01–07",
+      "goal": "搭配、造句、句间逻辑、段落论证",
+      "status": "available"
+    },
+    {
+      "name": "WEEK 02",
+      "headline": "从段落走向结构",
+      "days": "08–14",
+      "goal": "topic sentence、段落发展、论证顺序",
+      "status": "upcoming"
+    },
+    {
+      "name": "WEEK 03",
+      "headline": "学术与技术表达",
+      "days": "15–21",
+      "goal": "数据描述、专业名词、审慎表达与反驳",
+      "status": "upcoming"
+    },
+    {
+      "name": "WEEK 04",
+      "headline": "限时写作与深度修改",
+      "days": "22–28",
+      "goal": "写作速度、篇章结构、复盘与再写",
+      "status": "upcoming"
+    }
+  ],
+  "lessons": [
+    "day01",
+    "day02",
+    "day03",
+    "day04",
+    "day05",
+    "day06",
+    "day07"
+  ]
+}

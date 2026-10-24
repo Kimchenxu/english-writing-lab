@@ -1,0 +1,65 @@
+{
+  "id": "day08",
+  "day": 8,
+  "slug": "new-day",
+  "track": "Paragraph Building",
+  "title": "Your Next Writing Workout",
+  "subtitle": "填写今天的目标。",
+  "focus": "自定义练习重点",
+  "topic": "写作主题",
+  "canDo": [
+    "一项具体能力",
+    "另一项具体能力"
+  ],
+  "languageKit": [
+    [
+      "conduct research",
+      "开展研究",
+      "Researchers conduct research on language learning.",
+      "✗ make a research"
+    ]
+  ],
+  "framework": "Claim → Reason → Example → Link",
+  "coach": "今天优先练准确表达。",
+  "sections": [
+    {
+      "id": "precision",
+      "title": "01 · Word in Action",
+      "subtitle": "搭配判断",
+      "durationLabel": "8 min",
+      "minutes": 8,
+      "tasks": [
+        {
+          "id": "d8-01",
+          "type": "choice",
+          "prompt": "We need to ___ research.",
+          "options": [
+            "conduct",
+            "make",
+            "do a"
+          ],
+          "answer": "conduct",
+          "explanation": "conduct research 是常见学术搭配。"
+        }
+      ]
+    },
+    {
+      "id": "paragraph",
+      "title": "02 · Paragraph Challenge",
+      "subtitle": "段落写作",
+      "durationLabel": "52 min",
+      "minutes": 52,
+      "tasks": [
+        {
+          "id": "d8-02",
+          "type": "write",
+          "prompt": "Write a 130-word paragraph about a research topic.",
+          "answer": "A well-defined research question helps researchers select an appropriate method.",
+          "explanation": "给出清晰论点、理由和例子。",
+          "hint": "Start with a claim.",
+          "minWords": 130
+        }
+      ]
+    }
+  ]
+}
