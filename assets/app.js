@@ -463,8 +463,9 @@ function handleAnnotationAction(button,type) {
   saveRecord();
 
 
+}
 
-  /**
+ /**
    * 自动标红手动输入的括号内容。
    * 只有输入右括号 ")" 后才进行格式化，
    * 避免每输入一个字母就重新渲染，导致光标跳动。
@@ -517,7 +518,6 @@ function handleAnnotationAction(button,type) {
     selection.addRange(nextRange);
   }
 
-}
 
 // 委托事件绑定，新增课程/题目时不需要增加新的监听器。
 ui.addEventListener("mouseup",rememberAnnotationSelection);
