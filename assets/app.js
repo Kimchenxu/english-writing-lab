@@ -14,6 +14,8 @@ const store = {
   answers: {}, assessments: {}, submitted: false, rubric: {},
   // 批注、二次写作和视图切换使用独立字段，绝不覆盖第一遍 answers。
   annotations: {}, revisions: {}, attemptViews: {},
+  // AI 批改与复练答案独立保存，不干预原题、第一遍或第二遍答案。
+  feedback: null, practiceAnswers: {},
   time: { elapsed: 0, started: null }
 };
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
@@ -34,11 +36,13 @@ function loadRecord(id) {
         // 兼容旧版 v1 存档；旧数据没有这些字段时直接使用空对象。
         annotations: raw.annotations || {}, revisions: raw.revisions || {},
         attemptViews: raw.attemptViews || {},
+        feedback: raw.feedback?.format === "writelab-feedback" ? raw.feedback : null,
+        practiceAnswers: raw.practiceAnswers || {},
         time: raw.time && typeof raw.time.elapsed === "number" ? raw.time : {elapsed:0,started:null}
       };
     }
   } catch (_) { /* 禁用本地存储时仍然允许使用网站。 */ }
-  return {answers:{},assessments:{},rubric:{},submitted:false,annotations:{},revisions:{},attemptViews:{},time:{elapsed:0,started:null}};
+  return {answers:{},assessments:{},rubric:{},submitted:false,annotations:{},revisions:{},attemptViews:{},feedback:null,practiceAnswers:{},time:{elapsed:0,started:null}};
 }
 function saveRecord() {
   if (!store.current) return;
@@ -46,7 +50,8 @@ function saveRecord() {
     localStorage.setItem(SAVE_PREFIX + store.current.id, JSON.stringify({
       answers:store.answers,assessments:store.assessments,
       rubric:store.rubric,submitted:store.submitted,time:store.time,
-      annotations:store.annotations,revisions:store.revisions,attemptViews:store.attemptViews
+      annotations:store.annotations,revisions:store.revisions,attemptViews:store.attemptViews,
+      feedback:store.feedback,practiceAnswers:store.practiceAnswers
     }));
   } catch (_) { /* 无法永久存储时，当前页面的答题仍然正常。 */ }
 }
@@ -91,6 +96,213 @@ function getAnnotationHTML(id,original) {
     : escapeHTML(original).replace(/\n/g,"<br>");
 }
 
+// WriteLab Feedback JSON v1：只接收结构化 JSON，不运行 HTML、Markdown 或脚本。
+// 逐项校验后才写入，保证课程 ID 匹配、存档不被错误批改覆盖。
+function validateFeedback(input) {
+  const error = message => {throw Error(message);};
+  const text = (value,context,max=4500) => {
+    if(value == null) return "";
+    if(typeof value!=="string" || value.length>max) error(`${context} 必须是长度不超过 ${max} 的文字`);
+    return value;
+  };
+  if(!input || typeof input!=="object" || Array.isArray(input) || input.format!=="writelab-feedback" || input.version!==1) {
+    error('格式不符：需要 format="writelab-feedback", version=1');
+  }
+  if(input.dayId!==store.current?.id) error(`课程不匹配：当前是 ${store.current?.id}，JSON 是 ${input.dayId||"未知"}`);
+  const known = new Set(getTasks().map(t=>t.id));
+  if(!Array.isArray(input.tasks) || !input.tasks.length || input.tasks.length>known.size) error("tasks 必须是当前课程的题目数组");
+  const seen=new Set();
+  const tasks=input.tasks.map((task,index)=>{
+    if(!task || typeof task!=="object" || !known.has(task.taskId) || seen.has(task.taskId)) error(`tasks[${index}]: 题号无效或重复`);
+    seen.add(task.taskId);
+    if(!["wrong","weak","good","excellent","unreviewed"].includes(task.verdict)) error(`${task.taskId}: verdict 无效`);
+    if(task.issues!==undefined && (!Array.isArray(task.issues) || task.issues.length>35)) error(`${task.taskId}: issues 必须是数组（最多 35 条）`);
+    return {
+      taskId:task.taskId,verdict:task.verdict,
+      comment:text(task.comment,`${task.taskId}.comment`,5000),
+      logic:text(task.logic,`${task.taskId}.logic`,3000),
+      suggested:text(task.suggested,`${task.taskId}.suggested`,4000),
+      issues:(task.issues||[]).map((issue,i)=>{
+        if(!issue || typeof issue!=="object") error(`${task.taskId}.issues[${i}] 必须是对象`);
+        return {category:text(issue.category,'category',40)||"writing",
+          original:text(issue.original,'original',900),
+          replacement:text(issue.replacement,'replacement',1100),
+          reason:text(issue.reason,'reason',2300),
+          occurrence:issue.occurrence===undefined?1:(Number.isInteger(issue.occurrence)&&issue.occurrence>=1&&issue.occurrence<=30?issue.occurrence:error('occurrence 必须是 1–30 的整数'))};
+      })
+    };
+  });
+  const overall=input.overall||{};
+  if(!overall || typeof overall!=="object" || Array.isArray(overall)) error('overall 必须是对象');
+  const list=(items,key,maxCount=12)=>{
+    if(items===undefined)return [];
+    if(!Array.isArray(items) || items.length>maxCount)error(`${key} 必须是数组（最多 ${maxCount} 条）`);
+    return items.map((x,i)=>text(x,`${key}[${i}]`,1100));
+  };
+  const collocations=input.collocations||[];
+  if(!Array.isArray(collocations)||collocations.length>30)error('collocations 必须是数组（最多 30 条）');
+  const practice=input.practice||[];
+  if(!Array.isArray(practice)||practice.length>30)error('practice 必须是数组（最多 30 题）');
+  const ids=new Set();
+  const paragraph=input.paragraph||{};
+  if(!paragraph || typeof paragraph!=="object" || Array.isArray(paragraph))error('paragraph 必须是对象');
+  return {format:"writelab-feedback",version:1,dayId:input.dayId,
+    overall:{summary:text(overall.summary,'overall.summary',7000),
+      strengths:list(overall.strengths,'strengths'),priorities:list(overall.priorities,'priorities')},
+    tasks,
+    paragraph:Object.fromEntries(["claim","evidence","reasoning","organization","vocabulary","grammar"].map(key=>[key,text(paragraph[key],`paragraph.${key}`,1800)])),
+    collocations:collocations.map((c,i)=>{
+      if(!c||typeof c!=="object")error(`collocations[${i}] 格式错误`);
+      return {expression:text(c.expression,'expression',180),meaning:text(c.meaning,'meaning',600),example:text(c.example,'example',750)};
+    }),
+    practice:practice.map((item,i)=>{
+      if(!item||typeof item!=="object" || typeof item.id!=="string" || !/^[a-zA-Z0-9_-]{1,32}$/.test(item.id) || ids.has(item.id))error(`practice[${i}] 的 id 无效或重复`);
+      ids.add(item.id);
+      return {id:item.id,prompt:text(item.prompt,'practice.prompt',1800),tip:text(item.tip,'practice.tip',800)};
+    })
+  };
+}
+
+function parseFeedbackJSON(raw) {
+  // 允许直接复制 ChatGPT 的 ```json ... ``` 代码块。
+  const cleaned=raw.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"");
+  if(cleaned.length>350000)throw Error('内容超过 350 KB，建议精简批改 JSON');
+  let data;
+  try {data=JSON.parse(cleaned);}catch(e){throw Error(`不是有效 JSON：${e.message}`);}
+  return validateFeedback(data);
+}
+
+function importFeedbackJSON() {
+  if(!store.current || !store.submitted)return;
+  const area=document.getElementById("feedback-json-input");
+  const status=document.getElementById("feedback-import-status");
+  try {
+    const feedback=parseFeedbackJSON(area?.value||"");
+    if(store.feedback && !confirm("当前课程已有 AI 批改。导入新报告会替换旧报告，但保留所有原始作答、批注、第二遍和复练答案。继续吗？"))return;
+    store.feedback=feedback;saveRecord();
+    // 校验成功才重新渲染。失败时 textarea 保持原样，便于修改错误。
+    renderDay(store.current.id);
+    document.getElementById("feedback-overview")?.scrollIntoView({behavior:"smooth",block:"start"});
+  } catch(e) {
+    status.textContent=`导入失败：${e.message}`;
+    status.classList.remove("hidden");
+  }
+}
+
+const FEEDBACK_LABELS={wrong:"需要修改",weak:"基本正确，可加强",good:"表达正确",excellent:"优秀表达",unreviewed:"未批改"};
+// 用原句定位错误片段并渲染建议改法。无法匹配的修改只在问题清单里显示，绝不猜测位置。
+function feedbackAnnotatedHTML(original,issues) {
+  const text=String(original||"");
+  const matches=[];
+  for(const issue of issues) {
+    if(!issue.original)continue;
+    const needle=issue.original;
+    const haystack=text.toLowerCase(),lower=needle.toLowerCase();
+    let offset=0,start=-1;
+    for(let i=0;i<issue.occurrence;i++){
+      start=haystack.indexOf(lower,offset);
+      if(start<0)break;
+      offset=start+lower.length;
+    }
+    if(start<0)continue;
+    const end=start+needle.length;
+    if(matches.some(m=>start<m.end && end>m.start))continue;
+    matches.push({start,end,replacement:issue.replacement});
+  }
+  matches.sort((a,b)=>a.start-b.start);
+  let cursor=0, html="";
+  for(const m of matches) {
+    html+=escapeHTML(text.slice(cursor,m.start));
+    html+=`<del>${escapeHTML(text.slice(m.start,m.end))}</del>`;
+    if(m.replacement)html+=` <span class="annotation-add">(${escapeHTML(m.replacement)})</span>`;
+    cursor=m.end;
+  }
+  return {html:(html+escapeHTML(text.slice(cursor))).replace(/\n/g,"<br>"),count:matches.length};
+}
+
+function renderTaskFeedback(task) {
+  const review=store.feedback?.tasks.find(item=>item.taskId===task.id);
+  if(!review)return "";
+  const count=review.issues.length;
+  const v=store.answers[task.id]||"";
+  const preview=task.type==="write"&&v.trim()&&count?feedbackAnnotatedHTML(v,review.issues):null;
+  return `<section class="ai-task-review" aria-label="AI 对第 ${escapeHTML(task.id)} 题的反馈">
+    <div class="ai-task-head"><span>✦ 教练批改 · ${escapeHTML(task.id)}</span><span class="ai-verdict verdict-${escapeHTML(review.verdict)}">${escapeHTML(FEEDBACK_LABELS[review.verdict])}</span></div>
+    ${review.comment?`<p class="ai-comment">${escapeHTML(review.comment)}</p>`:""}
+    ${preview?.count?`<div class="ai-preview-label">原句改错对照（红色括号为建议写法）</div><div class="ai-annotated-preview">${preview.html}</div>
+      <button type="button" class="mini-button ai-apply-button" data-apply-feedback="${escapeHTML(task.id)}">↳ 复制这些修改到我的批注层</button>`:""}
+    ${count?`<div class="ai-issue-list">${review.issues.map((issue,i)=>`<div class="ai-issue">
+      <div class="ai-issue-heading"><span>${i+1}. ${escapeHTML(issue.category)}</span>${issue.original?` <code>${escapeHTML(issue.original)}</code>`:""}
+      ${issue.replacement?` <span class="ai-arrow">→</span> <strong>${escapeHTML(issue.replacement)}</strong>`:""}</div>
+      ${issue.reason?`<p>${escapeHTML(issue.reason)}</p>`:""}
+    </div>`).join("")}</div>`:""}
+    ${review.logic?`<p class="ai-extra"><strong>逻辑：</strong>${escapeHTML(review.logic)}</p>`:""}
+    ${review.suggested?`<details class="ai-suggested"><summary>查看参考修改（不是唯一答案）</summary><p>${escapeHTML(review.suggested)}</p></details>`:""}
+  </section>`;
+}
+
+function applyFeedbackToAnnotation(id) {
+  const review=store.feedback?.tasks.find(t=>t.taskId===id);
+  const task=getTasks().find(t=>t.id===id);
+  if(!review||!task||task.type!=="write")return;
+  const result=feedbackAnnotatedHTML(store.answers[id]||"",review.issues);
+  if(!result.count) {alert('批改里的原句片段无法与初稿精确匹配，请手工修改。');return;}
+  if(Object.prototype.hasOwnProperty.call(store.annotations,id) &&
+     !confirm('这道题已经有手工批注。覆盖批注层？初稿和第二遍不会受到影响。'))return;
+  store.annotations[id]=result.html;
+  store.attemptViews[id]=1;
+  saveRecord();
+  const pos=window.scrollY;
+  renderDay(store.current.id);window.scrollTo(0,pos);
+  document.querySelector(`[data-annotation-editor="${id}"]`)?.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function renderFeedbackImporter() {
+  if(!store.submitted)return "";
+  const f=store.feedback;
+  const p=f?.paragraph||{};
+  const paragraphEntries=[['观点',p?.claim],['证据/例子',p?.evidence],['推理',p?.reasoning],['组织',p?.organization],['词汇',p?.vocabulary],['语法',p?.grammar]].filter(([,v])=>v);
+  return `<section class="panel feedback-import-panel" id="feedback-overview">
+    <div class="feedback-import-heading"><div><div class="eyebrow">YOUR AI WRITING REVIEW</div><h2>粘贴教练批改 JSON</h2></div><span class="feedback-data-tag">${f?`已导入 ${f.tasks.length} 题`:'尚未导入'}</span></div>
+    <p class="feedback-disclaimer">将 ChatGPT 返回的 <code>writelab-feedback</code> JSON 粘贴到下方，按题号自动显示批改。所有数据仅在本地保存，导入不会改动你的初稿与第二遍写作。</p>
+    <details class="feedback-import-details" ${f?'':'open'}><summary>${f?'重新导入 / 替换 JSON':'打开 JSON 粘贴框'}</summary>
+    <textarea id="feedback-json-input" class="feedback-json-input" spellcheck="false" placeholder='粘贴 {"format":"writelab-feedback","version":1,"dayId":"${escapeHTML(store.current.id)}",...}'></textarea>
+    <div class="feedback-import-actions"><button type="button" class="button primary" data-action="feedback-import">导入并显示批改</button>
+    <button type="button" class="button outline" data-action="feedback-template">复制 JSON 格式要求</button></div>
+    <p id="feedback-import-status" class="feedback-import-error hidden" role="status"></p></details>
+    ${f?`<div class="feedback-summary"><h3>总体诊断</h3>${f.overall.summary?`<p>${escapeHTML(f.overall.summary)}</p>`:""}
+      ${f.overall.strengths.length?`<div class="feedback-summary-list"><strong>做得好的地方</strong><ul>${f.overall.strengths.map(x=>`<li>${escapeHTML(x)}</li>`).join("")}</ul></div>`:""}
+      ${f.overall.priorities.length?`<div class="feedback-summary-list"><strong>优先改进</strong><ol>${f.overall.priorities.map(x=>`<li>${escapeHTML(x)}</li>`).join("")}</ol></div>`:""}
+      ${paragraphEntries.length?`<details class="ai-suggested"><summary>学术段落专项评价</summary><dl class="paragraph-diagnosis">${paragraphEntries.map(([label,value])=>`<dt>${label}</dt><dd>${escapeHTML(value)}</dd>`).join('')}</dl></details>`:""}
+      <p class="feedback-disclaimer">题目下方显示具体问题与修改预览；原有主观题评分仍为自评，不是网站自动生成的 AI 评分。</p>
+      <button type="button" class="mini-button" data-action="feedback-scroll-practice">查看复练与搭配 ↓</button>
+    </div>`:""}
+  </section>`;
+}
+function renderFeedbackExtras() {
+  const f=store.feedback;
+  if(!f || (!f.collocations.length && !f.practice.length))return "";
+  return `<section class="panel feedback-extras" id="feedback-practice"><div class="eyebrow">PERSONALIZED REVIEW</div><h2>搭配库与针对性复练</h2>
+    ${f.collocations.length?`<h3>Active Vocabulary Bank</h3><div class="feedback-collocations">${f.collocations.map(c=>`<article><strong>${escapeHTML(c.expression)}</strong>${c.meaning?`<span>${escapeHTML(c.meaning)}</span>`:""}<p>${escapeHTML(c.example)}</p></article>`).join('')}</div>`:""}
+    ${f.practice.length?`<h3>针对性复练</h3><p class="feedback-disclaimer">答案自动保存在本地；这些题由导入的批改报告提供，并非网站自动生成。</p>
+      ${f.practice.map((q,i)=>`<div class="feedback-practice-item"><strong>${i+1}. ${escapeHTML(q.prompt)}</strong>
+        ${q.tip?`<p>${escapeHTML(q.tip)}</p>`:""}<textarea class="answer-editor" data-practice="${escapeHTML(q.id)}" spellcheck="true" placeholder="独立写下你的答案…">${escapeHTML(store.practiceAnswers[q.id]||"")}</textarea></div>`).join('')}`:""}
+  </section>`;
+}
+
+function feedbackJSONPrompt() {
+  return `请严格批改我下面的 WriteLab 英语训练答案，返回且只返回一个有效 JSON 对象，必要时放在一个 \`\`\`json 代码块里，不要写其他说明。
+格式必须为：
+{
+ "format":"writelab-feedback","version":1,"dayId":"${store.current.id}",
+ "overall":{"summary":"整体评价","strengths":["优点"],"priorities":["最值得练习的问题"]},
+ "tasks":[{"taskId":"${getTasks()[0].id}","verdict":"wrong","comment":"本题评价","issues":[{"category":"collocation","original":"原文里实际出现的短语","replacement":"建议改法","reason":"为什么需要修改","occurrence":1}],"logic":"逻辑是否成立","suggested":"必要时才给出修改版本"}],
+ "paragraph":{"claim":"立场评价","evidence":"证据评价","reasoning":"推理评价","organization":"组织评价","vocabulary":"词汇评价","grammar":"语法评价"},
+ "collocations":[{"expression":"lead to","meaning":"导致","example":"Practice can lead to improvement."}],
+ "practice":[{"id":"R1","prompt":"针对性练习题","tip":"提示"}]
+}
+重要：以上示例 taskId 和示例表达不能机械套用，请使用下方真实题目 ID。tasks 数组可以包含全部题目，必须使用各题的真实 taskId，绝不能虚构。verdict 只能是 wrong / weak / good / excellent / unreviewed。每个 issues.original 必须是原始作答中实际存在的连续文本（大小写可不同），replacement 是准确替换内容；不适合局部划线的问题，original 和 replacement 都用空字符串，把分析写到 reason。逻辑正确的不同写法不要机械判错。不要把完整段落强行重写；优先解释关键错误和自然搭配。生成 5 组搭配和 5 道针对性复练题。未作答题标为 unreviewed；主观题不要假装有官方自动评分。\n\n${copyText()}`;
+}
 // 在同一浏览器保存的旧记录也可直接导出，用于切换电脑、浏览器或网站域名。
 function exportBackup() {
   const records={};
@@ -237,7 +449,7 @@ function renderAnnotation(task,v) {
       <button type="button" class="mini-button" data-annotation-insert="${escapeHTML(task.id)}">插入红色（改法）</button>
       <button type="button" class="mini-button subtle" data-annotation-restore="${escapeHTML(task.id)}" title="仅还原批注区，不删除原答案">还原批注</button>
     </div>
-    <p class="annotation-tip">先选中错误表达 → 点击「划掉」；再输入新写法 → 点击「插入红色（改法）」。也可直接在批注区打字。批注会自动保存。</p>
+    <p class="annotation-tip">先选中错误表达 → 点击「划掉」；再输入新写法 → 点击「插入红色（改法）」。也可直接输入 (正确写法)，闭合括号后自动标红。批注会自动保存。</p>
   </div>`;
 }
 
@@ -282,7 +494,7 @@ function renderTask(task,index,sectionId) {
     ${isEssay?renderRubric():""}</div>`:"";
   return `<article class="task" id="task-${escapeHTML(task.id)}"><div class="task-top"><span class="task-num">${pad(index)}</span>
     <div class="task-body"><div class="task-prompt">${escapeHTML(task.prompt)}</div>${task.note?`<div class="task-extra">${escapeHTML(task.note)}</div>`:""}</div></div>
-    ${options}${hint}${result}</article>`;
+    ${options}${hint}${store.submitted?renderTaskFeedback(task):""}${result}</article>`;
 }
 function renderRubric() {
   return `<div class="review-title" style="margin-top:14px">PARAGRAPH CHECKLIST</div>
@@ -298,6 +510,7 @@ function renderDay(id) {
     store.answers=record.answers;store.assessments=record.assessments;store.submitted=record.submitted;
     store.rubric=record.rubric;store.time=record.time;
     store.annotations=record.annotations;store.revisions=record.revisions;store.attemptViews=record.attemptViews;
+    store.feedback=record.feedback;store.practiceAnswers=record.practiceAnswers;
   }
   store.current=lesson;
   siteStatus.textContent=`DAY ${pad(lesson.day)} / 28`;
@@ -324,9 +537,10 @@ function renderDay(id) {
     <div class="track"><div id="progress-fill" class="track-fill"></div></div><div class="timer-line"><div class="timer-count"><span id="timer-display">00:00</span><small> / 60:00</small></div>
     <div class="timer-actions"><button type="button" class="timer-button" id="timer-toggle" data-action="timer">▶ 开始计时</button><button type="button" class="timer-button backup-button" data-action="backup">↓ 备份</button><button type="button" class="timer-button backup-button" data-action="import">↑ 恢复</button></div></div>
     <input type="file" id="backup-import" accept="application/json,.json" class="hidden" aria-label="导入 WriteLab 本地记录"></section>
-    <div class="coach-note"><strong>COACH'S NOTE</strong>${escapeHTML(lesson.coach)}</div>${phases}
+    <div class="coach-note"><strong>COACH'S NOTE</strong>${escapeHTML(lesson.coach)}</div>${renderFeedbackImporter()}${phases}
     <section id="submit-panel" class="panel submit-panel ${store.submitted?"hidden":""}"><button type="button" class="button primary wide" data-action="submit">完成练习 · 对照答案与改写 →</button>
       <p class="submit-hint">初稿自动保存。交卷后保留第一遍原文，可划线批注并打开 2/2 独立重写；参考答案届时解锁。</p></section>
+    ${renderFeedbackExtras()}
     <section id="results" class="panel results ${store.submitted?"":"hidden"}" aria-live="polite"><div class="results-head"><div><div class="eyebrow">TODAY'S REVIEW</div><h2>写完不等于练完。</h2></div>
       <div class="score" id="score">—<small>自评 / 15</small></div></div><div class="results-desc" id="results-desc"></div><div class="results-note" id="results-note"></div>
       <div class="result-actions"><button type="button" class="button outline" data-action="copy">⧉ 复制写作和成绩</button>
@@ -385,16 +599,12 @@ function copyText() {
   ].join("\n");
 }
 async function copySummary(forCoach = false) {
-  // 复制按钮可以生成教练批改提示词；仍需用户主动粘贴到 AI 聊天窗口。
-  const coachingPrompt = `请作为严格、具体的英语写作教练批改下面的训练答案。先只分析问题，不要直接重写所有句子。
-要求：1) 按题号标出语法错误和不自然搭配；2) 说明为什么错，给出更自然的表达；3) 检查逻辑连接是否成立；4) 对学术段落评估观点明确性、证据和推理、组织、词汇和语法；5) 归纳最需要练习的 5 组可复用搭配，给出 5 道针对性新题；6) 对表达不同但正确的答案不要机械判错。
-
-`;
-  const summary=(forCoach ? coachingPrompt : "") + copyText(),status=document.getElementById("copy-status"),fallback=document.getElementById("copy-fallback");
+  // 复制按钮生成结构化 JSON 批改请求；不会向 AI 服务自动发送写作。
+  const summary=forCoach ? feedbackJSONPrompt() : copyText(),status=document.getElementById("copy-status"),fallback=document.getElementById("copy-fallback");
   try {
     if (!navigator.clipboard?.writeText) throw Error("Clipboard unavailable");
     await navigator.clipboard.writeText(summary);
-    status.textContent=forCoach?"✓ 已复制批改请求！直接粘贴到 ChatGPT 即可。":"✓ 已复制完整练习结果；可以粘贴给 ChatGPT 或保存进笔记。";
+    status.textContent=forCoach?"✓ 已复制 JSON 批改请求！粘贴到 ChatGPT，取得回复后再导入 WriteLab。":"✓ 已复制完整练习结果；可以粘贴给 ChatGPT 或保存进笔记。";
     fallback.classList.add("hidden");
   } catch (_) {
     // 部分手机浏览器限制剪贴板权限，降级到可长按复制的文本框。
@@ -404,10 +614,25 @@ async function copySummary(forCoach = false) {
   }
   status.classList.remove("hidden");
 }
+async function copyFeedbackTemplate() {
+  const prompt=feedbackJSONPrompt();
+  const area=document.getElementById("feedback-json-input");
+  const status=document.getElementById("feedback-import-status");
+  try {
+    if(!navigator.clipboard?.writeText)throw Error('clipboard unavailable');
+    await navigator.clipboard.writeText(prompt);
+    status.textContent="已复制结构化 JSON 批改请求。发给 ChatGPT 后，将返回的 JSON 粘贴在这里。";
+  } catch(_) {
+    // 剪贴板权限不足时提供可手动复制的文本，不丢失当前练习记录。
+    area.value=prompt;area.focus();area.select();
+    status.textContent="浏览器限制了自动复制，请手动复制上方文字并发送给 ChatGPT。";
+  }
+  status.classList.remove("hidden");
+}
 function resetDay() {
   if (!confirm("这会清除当天第一遍、批注、第二遍、自评和计时；操作不可撤销。建议先导出备份。确定清空吗？")) return;
   pauseTimer();store.answers={};store.assessments={};store.rubric={};store.submitted=false;
-  store.annotations={};store.revisions={};store.attemptViews={};
+  store.annotations={};store.revisions={};store.attemptViews={};store.feedback=null;store.practiceAnswers={};
   store.time={elapsed:0,started:null};saveRecord();renderDay(store.current.id);
   scrollTo({top:0,behavior:"smooth"});
 }
@@ -461,63 +686,26 @@ function handleAnnotationAction(button,type) {
   selectedAnnotationRange={id,range:range.cloneRange()};
   store.annotations[id]=sanitizeAnnotationHTML(editor.innerHTML);
   saveRecord();
-
-
 }
 
- /**
-   * 自动标红手动输入的括号内容。
-   * 只有输入右括号 ")" 后才进行格式化，
-   * 避免每输入一个字母就重新渲染，导致光标跳动。
-   */
-  function autoHighlightParentheses(editor, event) {
-    if (event.isComposing || event.data !== ")") return;
-
-    const selection = window.getSelection();
-    if (!selection || !selection.rangeCount) return;
-
-    const currentRange = selection.getRangeAt(0);
-    const node = currentRange.startContainer;
-
-    // 只处理普通文本，防止重复包裹已经标红的内容。
-    if (
-      node.nodeType !== Node.TEXT_NODE ||
-      !editor.contains(node) ||
-      node.parentElement?.closest(".annotation-add")
-    ) return;
-
-    const text = node.textContent;
-    const cursor = currentRange.startOffset;
-
-    // 确认光标刚好位于右括号之后。
-    if (text[cursor - 1] !== ")") return;
-
-    // 向前查找对应的左括号。
-    const start = text.lastIndexOf("(", cursor - 2);
-    if (start === -1) return;
-
-    // 暂时不处理嵌套括号，避免误标记。
-    const content = text.slice(start + 1, cursor - 1);
-    if (/[()]/.test(content)) return;
-
-    // 将整组括号包裹为现有的红色样式。
-    const range = document.createRange();
-    range.setStart(node, start);
-    range.setEnd(node, cursor);
-
-    const span = document.createElement("span");
-    span.className = "annotation-add";
-    range.surroundContents(span);
-
-    // 恢复光标到括号后面，方便继续输入。
-    const nextRange = document.createRange();
-    nextRange.setStartAfter(span);
-    nextRange.collapse(true);
-
-    selection.removeAllRanges();
-    selection.addRange(nextRange);
-  }
-
+// 用户在第一遍的改错层输入完整 (...) 时，自动套用红色批注样式。
+// 仅处理同一文本节点的非嵌套括号，避免破坏手工已有的 <del> 与红色批注。
+function autoHighlightParentheses(editor,event) {
+  if(event.isComposing || event.inputType!=="insertText" || event.data!==")")return;
+  const selection=window.getSelection();
+  if(!selection?.rangeCount)return;
+  const range=selection.getRangeAt(0),node=range.startContainer;
+  if(node.nodeType!==Node.TEXT_NODE || !editor.contains(node) || node.parentElement?.closest(".annotation-add,del"))return;
+  const offset=range.startOffset,text=node.textContent;
+  if(text[offset-1]!==")")return;
+  const start=text.lastIndexOf("(",offset-2);
+  if(start<0 || /[()]/.test(text.slice(start+1,offset-1)))return;
+  const wrap=document.createRange();wrap.setStart(node,start);wrap.setEnd(node,offset);
+  const span=document.createElement("span");span.className="annotation-add";
+  wrap.surroundContents(span);
+  const after=document.createRange();after.setStartAfter(span);after.collapse(true);
+  selection.removeAllRanges();selection.addRange(after);
+}
 
 // 委托事件绑定，新增课程/题目时不需要增加新的监听器。
 ui.addEventListener("mouseup",rememberAnnotationSelection);
@@ -526,23 +714,15 @@ ui.addEventListener("touchend",rememberAnnotationSelection);
 ui.addEventListener("input",event=>{
   const el=event.target;
   // 富文本批注和第二遍独立保存；第一遍在提交后继续保持只读。
-  
-  if (
-    el.matches("[data-annotation-editor]") &&
-    store.current &&
-    store.submitted
-  ) {
-    // 输入完成一组括号后，自动将其标红。
-    autoHighlightParentheses(el, event);
-
-    // 继续使用原有存储字段，兼容之前的 Day 01 答案。
-    store.annotations[el.dataset.annotationEditor] =
-      sanitizeAnnotationHTML(el.innerHTML);
-
-    saveRecord();
-    return;
+  if(el.matches("[data-annotation-editor]") && store.current && store.submitted) {
+    autoHighlightParentheses(el,event);
+    store.annotations[el.dataset.annotationEditor]=sanitizeAnnotationHTML(el.innerHTML);
+    saveRecord();return;
   }
-
+  if(el.matches("textarea[data-practice]") && store.current && store.submitted) {
+    store.practiceAnswers[el.dataset.practice]=el.value;
+    saveRecord();return;
+  }
   if(el.matches("textarea[data-revision]") && store.current && store.submitted) {
     const id=el.dataset.revision;
     store.revisions[id]=el.value;
@@ -574,6 +754,7 @@ ui.addEventListener("click",event=>{
     renderDay(store.current.id);window.scrollTo(0,position);
     return;
   }
+  if(button.dataset.applyFeedback) {applyFeedbackToAnnotation(button.dataset.applyFeedback);return;}
   if(button.dataset.annotationStrike) {handleAnnotationAction(button,"strike");return;}
   if(button.dataset.annotationInsert) {handleAnnotationAction(button,"insert");return;}
   if(button.dataset.annotationRestore) {
@@ -594,6 +775,9 @@ ui.addEventListener("click",event=>{
     case "reset": resetDay();break;
     case "backup": exportBackup();break;
     case "import": document.getElementById("backup-import")?.click();break;
+    case "feedback-import": importFeedbackJSON();break;
+    case "feedback-template": copyFeedbackTemplate();break;
+    case "feedback-scroll-practice": document.getElementById("feedback-practice")?.scrollIntoView({behavior:"smooth"});break;
   }
 });
 addEventListener("hashchange",navigate);
