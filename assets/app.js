@@ -15,7 +15,7 @@ const store = {
   // 批注、二次写作和视图切换使用独立字段，绝不覆盖第一遍 answers。
   annotations: {}, revisions: {}, attemptViews: {},
   // AI 批改与复练答案独立保存，不干预原题、第一遍或第二遍答案。
-  feedback: null, practiceAnswers: {},
+  feedback: null, practiceAnswers: {}, feedbackHidden: false,
   time: { elapsed: 0, started: null }
 };
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
@@ -38,11 +38,13 @@ function loadRecord(id) {
         attemptViews: raw.attemptViews || {},
         feedback: raw.feedback?.format === "writelab-feedback" ? raw.feedback : null,
         practiceAnswers: raw.practiceAnswers || {},
+        // 仅控制 AI 批改区可见性，旧存档缺少该字段时默认显示。
+        feedbackHidden: raw.feedbackHidden === true,
         time: raw.time && typeof raw.time.elapsed === "number" ? raw.time : {elapsed:0,started:null}
       };
     }
   } catch (_) { /* 禁用本地存储时仍然允许使用网站。 */ }
-  return {answers:{},assessments:{},rubric:{},submitted:false,annotations:{},revisions:{},attemptViews:{},feedback:null,practiceAnswers:{},time:{elapsed:0,started:null}};
+  return {answers:{},assessments:{},rubric:{},submitted:false,annotations:{},revisions:{},attemptViews:{},feedback:null,practiceAnswers:{},feedbackHidden:false,time:{elapsed:0,started:null}};
 }
 function saveRecord() {
   if (!store.current) return;
@@ -51,7 +53,8 @@ function saveRecord() {
       answers:store.answers,assessments:store.assessments,
       rubric:store.rubric,submitted:store.submitted,time:store.time,
       annotations:store.annotations,revisions:store.revisions,attemptViews:store.attemptViews,
-      feedback:store.feedback,practiceAnswers:store.practiceAnswers
+      feedback:store.feedback,practiceAnswers:store.practiceAnswers,
+      feedbackHidden:store.feedbackHidden
     }));
   } catch (_) { /* 无法永久存储时，当前页面的答题仍然正常。 */ }
 }
@@ -178,15 +181,76 @@ function importFeedbackJSON() {
   const status=document.getElementById("feedback-import-status");
   try {
     const feedback=parseFeedbackJSON(area?.value||"");
-    if(store.feedback && !confirm("当前课程已有 AI 批改。导入新报告会替换旧报告，但保留所有原始作答、批注、第二遍和复练答案。继续吗？"))return;
-    store.feedback=feedback;saveRecord();
-    // 校验成功才重新渲染。失败时 textarea 保持原样，便于修改错误。
-    renderDay(store.current.id);
-    document.getElementById("feedback-overview")?.scrollIntoView({behavior:"smooth",block:"start"});
+    applyImportedFeedback(feedback);
   } catch(e) {
     status.textContent=`导入失败：${e.message}`;
     status.classList.remove("hidden");
   }
+}
+
+// 粘贴与文件导入共用同一个保存流程；只有验证通过才改动批改记录。
+function applyImportedFeedback(feedback) {
+  if(store.feedback && !confirm("当前课程已有 AI 批改。导入新报告会替换旧报告，但保留所有原始作答、批注、第二遍和复练答案。继续吗？")) return false;
+  store.feedback=feedback;
+  // 新导入的报告默认展开，避免之前隐藏的状态让用户误以为导入失败。
+  store.feedbackHidden=false;
+  saveRecord();
+  renderDay(store.current.id);
+  document.getElementById("feedback-overview")?.scrollIntoView({behavior:"smooth",block:"start"});
+  return true;
+}
+
+// 读取用户主动选择的 JSON 文件；解析失败时不会写入旧的初稿或批改。
+async function importFeedbackFile(file) {
+  if(!file || !store.current || !store.submitted) return;
+  const status=document.getElementById("feedback-import-status");
+  try {
+    if(file.size>750000)throw Error("JSON 文件太大（最大 750 KB）");
+    const feedback=parseFeedbackJSON(await file.text());
+    applyImportedFeedback(feedback);
+  } catch(error) {
+    if(status) {
+      status.textContent=`文件导入失败：${error.message}`;
+      status.classList.remove("hidden");
+      document.getElementById("feedback-overview")?.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+  }
+}
+
+// TODAY'S REVIEW 位于页面底部；提供快捷入口，避免用户找不到上方的导入面板。
+function showFeedbackImporter() {
+  const details=document.querySelector("#feedback-overview .feedback-import-details");
+  if(details) details.open=true;
+  document.getElementById("feedback-overview")?.scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("feedback-json-input")?.focus({preventScroll:true});
+}
+
+// AI 批改显示切换：只更改当前课程的展示状态，刷新后仍保留。
+function toggleFeedbackVisibility() {
+  if(!store.feedback)return;
+  store.feedbackHidden=!store.feedbackHidden;
+  saveRecord();
+  const y=window.scrollY;
+  renderDay(store.current.id);
+  window.scrollTo(0,y);
+}
+
+// 单独清除当前课程已导入的批改；原答案、二次写作、手动批注和复练记录全部保留。
+function clearImportedFeedback() {
+  if(!store.feedback)return;
+  if(!confirm("确定删除当前 Day 已导入的 AI 批改吗？原始答案、批注、第二遍和复练答案不会删除。"))return;
+  store.feedback=null;
+  store.feedbackHidden=false;
+  saveRecord();
+  renderDay(store.current.id);
+  document.getElementById("feedback-overview")?.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+// 清空尚未提交的 JSON 粘贴框，不影响已经导入的批改数据。
+function clearFeedbackPasteBox() {
+  const area=document.getElementById("feedback-json-input");
+  if(area)area.value="";
+  document.getElementById("feedback-import-status")?.classList.add("hidden");
 }
 
 const FEEDBACK_LABELS={wrong:"需要修改",weak:"基本正确，可加强",good:"表达正确",excellent:"优秀表达",unreviewed:"未批改"};
@@ -221,6 +285,8 @@ function feedbackAnnotatedHTML(original,issues) {
 }
 
 function renderTaskFeedback(task) {
+  // 隐藏批改仅改变 UI，不删除导入的报告。
+  if(store.feedbackHidden)return "";
   const review=store.feedback?.tasks.find(item=>item.taskId===task.id);
   if(!review)return "";
   const count=review.issues.length;
@@ -267,10 +333,19 @@ function renderFeedbackImporter() {
     <p class="feedback-disclaimer">将 ChatGPT 返回的 <code>writelab-feedback</code> JSON 粘贴到下方，按题号自动显示批改。所有数据仅在本地保存，导入不会改动你的初稿与第二遍写作。</p>
     <details class="feedback-import-details" ${f?'':'open'}><summary>${f?'重新导入 / 替换 JSON':'打开 JSON 粘贴框'}</summary>
     <textarea id="feedback-json-input" class="feedback-json-input" spellcheck="false" placeholder='粘贴 {"format":"writelab-feedback","version":1,"dayId":"${escapeHTML(store.current.id)}",...}'></textarea>
-    <div class="feedback-import-actions"><button type="button" class="button primary" data-action="feedback-import">导入并显示批改</button>
-    <button type="button" class="button outline" data-action="feedback-template">复制 JSON 格式要求</button></div>
+    <div class="feedback-import-actions"><button type="button" class="button primary" data-action="feedback-import">导入粘贴的 JSON</button>
+    <button type="button" class="button outline" data-action="feedback-file">📁 选择 JSON 文件</button>
+    <button type="button" class="button outline" data-action="feedback-template">复制 JSON 格式要求</button>
+    <button type="button" class="button outline" data-action="feedback-input-clear">清空粘贴框</button></div>
+    <!-- 批改 JSON 文件输入与本地学习记录备份输入严格区分。 -->
+    <input type="file" id="feedback-file-input" accept=".json,application/json" class="hidden" aria-label="选择 AI 批改 JSON 文件">
     <p id="feedback-import-status" class="feedback-import-error hidden" role="status"></p></details>
-    ${f?`<div class="feedback-summary"><h3>总体诊断</h3>${f.overall.summary?`<p>${escapeHTML(f.overall.summary)}</p>`:""}
+    <!-- 隐藏只改变显示，清空仅删除本 Day 已导入的 AI 批改。 -->
+    ${f?`<div class="feedback-import-actions" style="margin:12px 0">
+      <button type="button" class="button outline" data-action="feedback-toggle">${store.feedbackHidden?"👁 显示批改":"🙈 隐藏批改"}</button>
+      <button type="button" class="button outline" data-action="feedback-clear">清空已导入批改</button>
+    </div>`:""}
+    ${f&&!store.feedbackHidden?`<div class="feedback-summary"><h3>总体诊断</h3>${f.overall.summary?`<p>${escapeHTML(f.overall.summary)}</p>`:""}
       ${f.overall.strengths.length?`<div class="feedback-summary-list"><strong>做得好的地方</strong><ul>${f.overall.strengths.map(x=>`<li>${escapeHTML(x)}</li>`).join("")}</ul></div>`:""}
       ${f.overall.priorities.length?`<div class="feedback-summary-list"><strong>优先改进</strong><ol>${f.overall.priorities.map(x=>`<li>${escapeHTML(x)}</li>`).join("")}</ol></div>`:""}
       ${paragraphEntries.length?`<details class="ai-suggested"><summary>学术段落专项评价</summary><dl class="paragraph-diagnosis">${paragraphEntries.map(([label,value])=>`<dt>${label}</dt><dd>${escapeHTML(value)}</dd>`).join('')}</dl></details>`:""}
@@ -280,6 +355,7 @@ function renderFeedbackImporter() {
   </section>`;
 }
 function renderFeedbackExtras() {
+  if(store.feedbackHidden)return "";
   const f=store.feedback;
   if(!f || (!f.collocations.length && !f.practice.length))return "";
   return `<section class="panel feedback-extras" id="feedback-practice"><div class="eyebrow">PERSONALIZED REVIEW</div><h2>搭配库与针对性复练</h2>
@@ -511,6 +587,7 @@ function renderDay(id) {
     store.rubric=record.rubric;store.time=record.time;
     store.annotations=record.annotations;store.revisions=record.revisions;store.attemptViews=record.attemptViews;
     store.feedback=record.feedback;store.practiceAnswers=record.practiceAnswers;
+    store.feedbackHidden=record.feedbackHidden;
   }
   store.current=lesson;
   siteStatus.textContent=`DAY ${pad(lesson.day)} / 28`;
@@ -545,7 +622,10 @@ function renderDay(id) {
       <div class="score" id="score">—<small>自评 / 15</small></div></div><div class="results-desc" id="results-desc"></div><div class="results-note" id="results-note"></div>
       <div class="result-actions"><button type="button" class="button outline" data-action="copy">⧉ 复制写作和成绩</button>
       <button type="button" class="button outline" data-action="coach">✦ 复制 AI 批改请求</button>
+      <button type="button" class="button primary review-import-link" data-action="feedback-open">↑ 粘贴 / 导入 AI 批改 JSON</button>
+      <button type="button" class="button outline" data-action="feedback-file">📁 上传批改 JSON 文件</button>
       <button type="button" class="button outline" data-action="backup">↓ 导出全部学习记录</button></div>
+    <p class="review-import-tip">从 ChatGPT 复制结构化批改 JSON 后点击上方“粘贴 / 导入”；如果已保存为 .json 文件，直接点“上传批改 JSON 文件”。两种方式都不会覆盖原答案。</p>
     <details class="danger-zone"><summary>数据管理（谨慎操作）</summary><button type="button" class="button text" data-action="reset">清空这一天的全部记录</button></details>
       <p id="copy-status" class="confirm-text hidden"></p><textarea id="copy-fallback" class="backup hidden" readonly aria-label="复制结果"></textarea>
       ${next?`<div class="next-link"><a class="button primary" href="#/${escapeHTML(next)}">去 Day ${pad(lesson.day+1)} →</a></div>`:""}
@@ -632,7 +712,7 @@ async function copyFeedbackTemplate() {
 function resetDay() {
   if (!confirm("这会清除当天第一遍、批注、第二遍、自评和计时；操作不可撤销。建议先导出备份。确定清空吗？")) return;
   pauseTimer();store.answers={};store.assessments={};store.rubric={};store.submitted=false;
-  store.annotations={};store.revisions={};store.attemptViews={};store.feedback=null;store.practiceAnswers={};
+  store.annotations={};store.revisions={};store.attemptViews={};store.feedback=null;store.practiceAnswers={};store.feedbackHidden=false;
   store.time={elapsed:0,started:null};saveRecord();renderDay(store.current.id);
   scrollTo({top:0,behavior:"smooth"});
 }
@@ -741,6 +821,8 @@ ui.addEventListener("input",event=>{
 ui.addEventListener("change",event=>{
   const el=event.target;
   if(el.id==="backup-import") {importBackup(el.files?.[0]);el.value="";return;}
+  // AI 批改文件是独立的输入，不会触发“恢复学习记录”的覆盖操作。
+  if(el.id==="feedback-file-input") {importFeedbackFile(el.files?.[0]);el.value="";return;}
   if (el.matches("input[data-rubric]")) {store.rubric[el.dataset.rubric]=el.checked;saveRecord();return;}
   if (!store.current || store.submitted || !el.matches('input[type="radio"][data-answer]'))return;
   store.answers[el.dataset.answer]=el.value;saveRecord();updateProgress();
@@ -776,7 +858,12 @@ ui.addEventListener("click",event=>{
     case "backup": exportBackup();break;
     case "import": document.getElementById("backup-import")?.click();break;
     case "feedback-import": importFeedbackJSON();break;
+    case "feedback-open": showFeedbackImporter();break;
+    case "feedback-file": document.getElementById("feedback-file-input")?.click();break;
     case "feedback-template": copyFeedbackTemplate();break;
+    case "feedback-toggle": toggleFeedbackVisibility();break;
+    case "feedback-clear": clearImportedFeedback();break;
+    case "feedback-input-clear": clearFeedbackPasteBox();break;
     case "feedback-scroll-practice": document.getElementById("feedback-practice")?.scrollIntoView({behavior:"smooth"});break;
   }
 });
