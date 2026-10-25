@@ -461,6 +461,62 @@ function handleAnnotationAction(button,type) {
   selectedAnnotationRange={id,range:range.cloneRange()};
   store.annotations[id]=sanitizeAnnotationHTML(editor.innerHTML);
   saveRecord();
+
+
+
+  /**
+   * 自动标红手动输入的括号内容。
+   * 只有输入右括号 ")" 后才进行格式化，
+   * 避免每输入一个字母就重新渲染，导致光标跳动。
+   */
+  function autoHighlightParentheses(editor, event) {
+    if (event.isComposing || event.data !== ")") return;
+
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount) return;
+
+    const currentRange = selection.getRangeAt(0);
+    const node = currentRange.startContainer;
+
+    // 只处理普通文本，防止重复包裹已经标红的内容。
+    if (
+      node.nodeType !== Node.TEXT_NODE ||
+      !editor.contains(node) ||
+      node.parentElement?.closest(".annotation-add")
+    ) return;
+
+    const text = node.textContent;
+    const cursor = currentRange.startOffset;
+
+    // 确认光标刚好位于右括号之后。
+    if (text[cursor - 1] !== ")") return;
+
+    // 向前查找对应的左括号。
+    const start = text.lastIndexOf("(", cursor - 2);
+    if (start === -1) return;
+
+    // 暂时不处理嵌套括号，避免误标记。
+    const content = text.slice(start + 1, cursor - 1);
+    if (/[()]/.test(content)) return;
+
+    // 将整组括号包裹为现有的红色样式。
+    const range = document.createRange();
+    range.setStart(node, start);
+    range.setEnd(node, cursor);
+
+    const span = document.createElement("span");
+    span.className = "annotation-add";
+    range.surroundContents(span);
+
+    // 恢复光标到括号后面，方便继续输入。
+    const nextRange = document.createRange();
+    nextRange.setStartAfter(span);
+    nextRange.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(nextRange);
+  }
+
 }
 
 // 委托事件绑定，新增课程/题目时不需要增加新的监听器。
@@ -470,10 +526,23 @@ ui.addEventListener("touchend",rememberAnnotationSelection);
 ui.addEventListener("input",event=>{
   const el=event.target;
   // 富文本批注和第二遍独立保存；第一遍在提交后继续保持只读。
-  if(el.matches("[data-annotation-editor]") && store.current && store.submitted) {
-    store.annotations[el.dataset.annotationEditor]=sanitizeAnnotationHTML(el.innerHTML);
-    saveRecord();return;
+  
+  if (
+    el.matches("[data-annotation-editor]") &&
+    store.current &&
+    store.submitted
+  ) {
+    // 输入完成一组括号后，自动将其标红。
+    autoHighlightParentheses(el, event);
+
+    // 继续使用原有存储字段，兼容之前的 Day 01 答案。
+    store.annotations[el.dataset.annotationEditor] =
+      sanitizeAnnotationHTML(el.innerHTML);
+
+    saveRecord();
+    return;
   }
+
   if(el.matches("textarea[data-revision]") && store.current && store.submitted) {
     const id=el.dataset.revision;
     store.revisions[id]=el.value;
