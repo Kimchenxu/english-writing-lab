@@ -8,9 +8,12 @@
 const ui = document.getElementById("app");
 const siteStatus = document.getElementById("site-status");
 const SAVE_PREFIX = "writelab.progress.v1.";
+// 用户自定义课程与旧版 Day 01–07 作答分开保存；旧存储键保持不变。
+const CUSTOM_COURSES_KEY = "writelab.customCourses.v1";
+const CUSTOM_COURSE_ID = /^custom-[a-z0-9-]{1,64}$/;
 const PARAGRAPH_RUBRIC = ["观点明确", "理由或机制具体", "例子支持观点", "逻辑连接自然", "搭配与语法准确"];
 const store = {
-  manifest: null, lessons: new Map(), current: null,
+  manifest: null, lessons: new Map(), customLessons: new Map(), current: null,
   answers: {}, assessments: {}, submitted: false, rubric: {},
   // 批注、二次写作和视图切换使用独立字段，绝不覆盖第一遍 answers。
   annotations: {}, revisions: {}, attemptViews: {},
@@ -21,7 +24,7 @@ const store = {
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s]));
 const pad = x => String(x).padStart(2,"0");
 const formatClock = ms => `${pad(Math.floor(ms/60000))}:${pad(Math.floor((ms%60000)/1000))}`;
-const getRoute = () => (location.hash.match(/^#\/(day\d{2,3})\/?$/) || [])[1] || null;
+const getRoute = () => (location.hash.match(/^#\/(day\d{2,3}|custom-[a-z0-9-]{1,64})\/?$/) || [])[1] || null;
 const getTasks = (lesson = store.current) => lesson.sections.flatMap(section => section.tasks);
 const wordCount = text => (String(text || "").match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g) || []).length;
 
@@ -379,6 +382,167 @@ function feedbackJSONPrompt() {
 }
 重要：以上示例 taskId 和示例表达不能机械套用，请使用下方真实题目 ID。tasks 数组可以包含全部题目，必须使用各题的真实 taskId，绝不能虚构。verdict 只能是 wrong / weak / good / excellent / unreviewed。每个 issues.original 必须是原始作答中实际存在的连续文本（大小写可不同），replacement 是准确替换内容；不适合局部划线的问题，original 和 replacement 都用空字符串，把分析写到 reason。逻辑正确的不同写法不要机械判错。不要把完整段落强行重写；优先解释关键错误和自然搭配。生成 5 组搭配和 5 道针对性复练题。未作答题标为 unreviewed；主观题不要假装有官方自动评分。\n\n${copyText()}`;
 }
+// 自定义课程 v1：两种输入均支持：完整 sections 课程，以及简单 questions 题库。
+// 只保存经过校验的字符串/数组数据，不将用户 JSON 当作 HTML 或 JavaScript 执行。
+function normalizeCustomCourse(input) {
+  const fail = msg => { throw Error(msg); };
+  const obj = x => !!x && typeof x === "object" && !Array.isArray(x);
+  const str = (x, field, limit = 2000) => {
+    if (x == null) return "";
+    if (typeof x !== "string" || x.length > limit) fail(`${field} 必须是文字，长度不超过 ${limit}`);
+    return x.trim();
+  };
+  if (!obj(input)) fail("课程必须是 JSON 对象");
+  if (input.format && input.format !== "writelab-course") fail("format 应为 writelab-course（也可以省略）");
+  if (input.version !== undefined && input.version !== 1) fail("暂时只支持 version: 1");
+  const rawId = str(input.id, "id", 90);
+  // 任何旧模板的 day08、day01 ID 都转入 custom-* 空间，避免覆盖内置 Day 01–07。
+  const shortId = rawId.replace(/^custom-/i, "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  const id = `custom-${shortId || `lesson-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`}`;
+  if (!CUSTOM_COURSE_ID.test(id)) fail("课程 id 无效，请使用字母、数字或连字符");
+  const title = str(input.title, "title", 180);
+  if (!title) fail("缺少课程 title");
+  const subject = str(input.subject || input.track || "综合学习", "subject", 80);
+  let suppliedSections = input.sections;
+  if (!suppliedSections && Array.isArray(input.questions)) {
+    suppliedSections = [{id:"practice", title:"Practice · 练习",subtitle:"独立完成后再核对参考答案", minutes: input.minutes || 30, tasks:input.questions}];
+  }
+  if (!Array.isArray(suppliedSections) || !suppliedSections.length || suppliedSections.length > 20) fail("需要 sections 或 questions 数组（最多 20 个模块）");
+  const ids = new Set(); let count = 0;
+  const sections = suppliedSections.map((sec, si) => {
+    if (!obj(sec) || !Array.isArray(sec.tasks) || !sec.tasks.length || sec.tasks.length > 100) fail(`sections[${si}].tasks 必须是非空数组`);
+    const sectionId = str(sec.id || `section-${si+1}`, "section.id", 50).replace(/[^a-zA-Z0-9_-]/g,"-");
+    const minutes = Number.isFinite(Number(sec.minutes)) ? Math.max(1,Math.min(180,Math.round(Number(sec.minutes)))) : 15;
+    return {id:sectionId,title:str(sec.title || `Section ${si+1}`,"section.title",150), subtitle:str(sec.subtitle,"section.subtitle",360),minutes,
+      durationLabel:str(sec.durationLabel,"durationLabel",40) || `${minutes} min`,
+      tasks:sec.tasks.map((t, ti) => {
+        if (!obj(t)) fail(`sections[${si}].tasks[${ti}] 不是对象`);
+        if (++count > 200) fail("每门课最多 200 题");
+        const rawType = str(t.type || "write", "type", 35).toLowerCase();
+        const type = ["choice","multiple_choice","multiple-choice","quiz"].includes(rawType) ? "choice"
+          : ["write","essay","text","short","short_answer","open"].includes(rawType) ? "write" : fail(`不支持题型 ${rawType}`);
+        const taskId = str(t.id || `${id}-q${count}`, "task.id", 90);
+        if (!/^[a-zA-Z0-9_-]{1,90}$/.test(taskId) || ids.has(taskId)) fail(`题目 ID 无效或重复：${taskId}`);
+        ids.add(taskId);
+        const prompt = str(t.prompt ?? t.question, "question/prompt", 12000);
+        if (!prompt) fail(`第 ${count} 题缺少 prompt 或 question`);
+        const options = type === "choice" ? t.options : [];
+        if (type === "choice" && (!Array.isArray(options) || options.length < 2 || options.length > 8)) fail(`第 ${count} 题需要 2–8 个 options`);
+        const cleanOptions = type === "choice" ? options.map((o,i)=>str(o,`options[${i}]`,400)) : [];
+        if (type === "choice" && (cleanOptions.some(x=>!x) || new Set(cleanOptions).size !== cleanOptions.length)) fail(`第 ${count} 题选项无效或重复`);
+        const answer = str(t.answer, "answer", 12000);
+        if (type === "choice" && !cleanOptions.includes(answer)) fail(`第 ${count} 题 answer 必须与选项文本完全相同`);
+        // 开放题允许不附参考答案：显示明确的“未提供”，不制造自动评分的错觉。
+        return {id:taskId,type,prompt,options:cleanOptions,answer:answer || "（课程未提供参考答案，请自行复盘或向 AI 请求批改。）",
+          explanation:str(t.explanation,"explanation",7000),hint:str(t.hint,"hint",2000),note:str(t.note,"note",2000),
+          minWords:Number.isInteger(t.minWords)&&t.minWords>=0&&t.minWords<=3000?t.minWords:0};
+      })};
+  });
+  const kit = input.languageKit === undefined ? [] : input.languageKit;
+  if (!Array.isArray(kit) || kit.length>40) fail("languageKit 最多 40 组");
+  const languageKit = kit.map((row,i)=>{
+    if (!Array.isArray(row) || row.length>4) fail(`languageKit[${i}] 应为最多四项的数组`);
+    return [0,1,2,3].map(n=>str(row[n],`languageKit[${i}]`,1200));
+  });
+  const canDo = input.canDo === undefined ? [] : input.canDo;
+  if (!Array.isArray(canDo) || canDo.length>15) fail("canDo 必须是数组（最多 15 条）");
+  const totalMinutes=sections.reduce((acc,sec)=>acc+sec.minutes,0);
+  return {format:"writelab-course",version:1,id,subject,custom:true,day:0,
+    slug:str(input.slug,"slug",100),track:str(input.track,"track",100)||subject,title,
+    subtitle:str(input.subtitle || input.description,"subtitle",1600),
+    focus:str(input.focus,"focus",200)||"自主练习",topic:str(input.topic,"topic",200)||subject,
+    canDo:canDo.map((x,i)=>str(x,`canDo[${i}]`,200)),languageKit,
+    framework:str(input.framework,"framework",500),coach:str(input.coach,"coach",900)||"先作答，再查看解析与参考答案。",
+    sections,minutes:totalMinutes};
+}
+
+function parseCustomCourseJSON(raw) {
+  // 复制 ChatGPT 的 ```json 代码块也可以直接导入。
+  if (raw.length > 900000) throw Error("单份课程 JSON 不得超过 900 KB");
+  const text = raw.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"");
+  let parsed;try { parsed=JSON.parse(text); } catch(e) {throw Error(`JSON 解析失败：${e.message}`);}
+  return normalizeCustomCourse(parsed);
+}
+
+function readCustomCourses() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_COURSES_KEY);
+    if (!raw) return [];
+    const items=JSON.parse(raw);
+    if (!Array.isArray(items)) throw Error("本地课程库格式损坏");
+    return items.map(normalizeCustomCourse);
+  } catch (e) {
+    // 不删除无法读取的数据，以便用户手动备份后排查。
+    console.warn("WriteLab 本地课程库读取失败：", e);
+    return [];
+  }
+}
+function registerCustomCourse(course) {
+  const existing=store.customLessons.get(course.id);
+  if (existing && !confirm(`“${course.title}”与已有课程 ID 相同。覆盖题目可能影响旧答案的对应关系；旧作答不会被自动清空。确定覆盖课程内容？`)) return false;
+  const list=[...store.customLessons.values()].filter(c=>c.id!==course.id).concat(course);
+  if (list.length > 100) throw Error("本地课程最多 100 门，请先导出备份并整理课程库");
+  // 先写入 localStorage，再更新运行时缓存；配额不足时不破坏已有记录。
+  localStorage.setItem(CUSTOM_COURSES_KEY,JSON.stringify(list));
+  store.customLessons.set(course.id,course);store.lessons.set(course.id,course);
+  return true;
+}
+function importCourseFromHome() {
+  const box=document.getElementById("course-json-input");
+  const status=document.getElementById("course-import-status");
+  try {
+    const lesson=parseCustomCourseJSON(box?.value||"");
+    if(!registerCustomCourse(lesson)) return;
+    renderHome();
+    document.getElementById("course-import-status").textContent=`✓ 已添加《${lesson.title}》，可直接打开答题。`;
+    document.getElementById("course-import-status").classList.remove("hidden");
+    document.getElementById("custom-lessons")?.scrollIntoView({behavior:"smooth",block:"start"});
+  } catch(e) {status.textContent=`导入失败：${e.message}`;status.classList.remove("hidden");}
+}
+async function importCourseFile(file) {
+  if(!file)return;
+  const status=document.getElementById("course-import-status");
+  try {
+    if(file.size > 900000)throw Error("文件超过 900 KB");
+    const lesson=parseCustomCourseJSON(await file.text());
+    if(!registerCustomCourse(lesson))return;
+    renderHome();
+    document.getElementById("course-import-status").textContent=`✓ 已添加《${lesson.title}》。`;
+    document.getElementById("course-import-status").classList.remove("hidden");
+  } catch(e) {status.textContent=`导入失败：${e.message}`;status.classList.remove("hidden");}
+}
+function downloadJSON(data,name) {
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json;charset=utf-8"});
+  const url=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportCustomCourse(id) {
+  const lesson=store.customLessons.get(id);
+  if(lesson)downloadJSON(lesson,`${id}.json`);
+}
+function deleteCustomCourse(id) {
+  const lesson=store.customLessons.get(id);
+  if(!lesson)return;
+  if(!confirm(`从首页移除《${lesson.title}》？题目数据将移除，但原答案依然保留；再次导入同 ID 课程可以恢复作答。建议先导出课程备份。`))return;
+  const list=[...store.customLessons.values()].filter(x=>x.id!==id);
+  try {localStorage.setItem(CUSTOM_COURSES_KEY,JSON.stringify(list));}
+  catch(e) {alert(`无法删除课程：${e.message}`);return;}
+  store.customLessons.delete(id);store.lessons.delete(id);renderHome();
+}
+// 两个跨学科示例，首页按钮只填入文本，必须由用户自行点击导入。
+const CUSTOM_COURSE_EXAMPLE = {
+  format:"writelab-course",version:1,id:"cs-parallel-01",subject:"计算机科学 · 并行计算",
+  title:"Parallel Computing · 基础训练",description:"理解线程、并行加速比与内存瓶颈。",minutes:25,
+  questions:[
+    {id:"pc-q1",type:"choice",question:"Which term describes time spent coordinating parallel tasks?",
+      options:["Synchronization overhead","Cache capacity","Clock frequency"],answer:"Synchronization overhead",
+      explanation:"Synchronization overhead 指协调并行任务带来的额外时间。"},
+    {id:"pc-q2",type:"write",question:"用英文解释：为什么增加线程数不一定带来线性的性能提升？",
+      hint:"Consider synchronization and memory bandwidth.",explanation:"可以讨论串行部分、同步开销与内存带宽限制。"}
+  ]
+};
+
 // 在同一浏览器保存的旧记录也可直接导出，用于切换电脑、浏览器或网站域名。
 function exportBackup() {
   const records={};
@@ -388,12 +552,10 @@ function exportBackup() {
       if(key && key.startsWith(SAVE_PREFIX)) records[key]=localStorage.getItem(key);
     }
   } catch (_) { alert("浏览器无法读取本地存储，请检查隐私设置。");return; }
-  const snapshot={format:"writelab-local-backup",version:1,exportedAt:new Date().toISOString(),records};
-  const blob=new Blob([JSON.stringify(snapshot,null,2)],{type:"application/json;charset=utf-8"});
-  const url=URL.createObjectURL(blob),link=document.createElement("a");
-  link.href=url;link.download=`writelab-backup-${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(link);link.click();link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  // v2 备份同时包含自定义题库和各课程的作答；仍兼容读取旧版 v1 备份。
+  const snapshot={format:"writelab-local-backup",version:2,exportedAt:new Date().toISOString(),
+    courses:[...store.customLessons.values()],records};
+  downloadJSON(snapshot,`writelab-backup-${new Date().toISOString().slice(0,10)}.json`);
 }
 
 async function importBackup(file) {
@@ -404,16 +566,33 @@ async function importBackup(file) {
       throw Error("不是 WriteLab 导出的备份文件");
     }
     const entries=Object.entries(obj.records);
-    if(!entries.length || entries.some(([key,value])=>!/^writelab\.progress\.v1\.day\d{2,3}$/.test(key) || typeof value!=="string")) {
+    if(entries.some(([key,value])=>!/^writelab\.progress\.v1\.(?:day\d{2,3}|custom-[a-z0-9-]{1,64})$/.test(key) || typeof value!=="string")) {
       throw Error("备份数据格式不符合要求");
     }
+    if(obj.version!==1 && obj.version!==2)throw Error("不支持的备份版本");
+    if(obj.version===1 && !entries.length)throw Error("旧版备份中没有学习记录");
+    // 所有课程先校验，再整体恢复；内置课程文件不受影响。
+    const courses = obj.version===2 ? obj.courses : [];
+    if(!Array.isArray(courses)||courses.length>100)throw Error("备份课程库格式错误");
+    const normalized=courses.map(normalizeCustomCourse);
+    if(new Set(normalized.map(x=>x.id)).size!==normalized.length)throw Error("备份课程 ID 重复");
     // 写入前校验全部记录，避免导入一半才发现文件错误。
     for(const [,value] of entries) {
       const record=JSON.parse(value);
       if(!record || typeof record!=="object" || !record.answers || typeof record.answers!=="object") throw Error("发现损坏的存档");
     }
-    if(!confirm(`将从备份恢复 ${entries.length} 天的记录。相同日期的现有本地数据会被覆盖。建议先点击“导出备份”。确定继续吗？`))return;
-    for(const [key,value] of entries)localStorage.setItem(key,value);
+    if(!confirm(`将从备份恢复 ${entries.length} 组学习记录、${normalized.length} 门自定义课程。相同 ID 的数据会被覆盖，建议先导出现有备份。继续吗？`))return;
+    // 容量问题可能导致写入失败：保存旧值并在失败时尽力回滚。
+    const before=entries.map(([key])=>[key,localStorage.getItem(key)]);
+    const previousCourses=localStorage.getItem(CUSTOM_COURSES_KEY);
+    try {
+      if(obj.version===2)localStorage.setItem(CUSTOM_COURSES_KEY,JSON.stringify(normalized));
+      for(const [key,value] of entries)localStorage.setItem(key,value);
+    }catch(error) {
+      if(obj.version===2) {if(previousCourses===null)localStorage.removeItem(CUSTOM_COURSES_KEY);else localStorage.setItem(CUSTOM_COURSES_KEY,previousCourses);}
+      for(const [key,old] of before){if(old===null)localStorage.removeItem(key);else localStorage.setItem(key,old);}
+      throw error;
+    }
     alert("备份已恢复，页面将重新载入。");
     location.reload();
   } catch(error) {alert(`导入失败：${error.message}。原有作答不会被主动清空。`);}
@@ -472,6 +651,12 @@ async function loadCourses() {
   }));
   entries.forEach(l => store.lessons.set(l.id,l));
   store.manifest=manifest;
+  // 自定义课程只读取浏览器缓存，不影响 GitHub Pages 的静态课程目录。
+  for(const lesson of readCustomCourses()) {
+    if(!store.customLessons.has(lesson.id)) {
+      store.customLessons.set(lesson.id,lesson);store.lessons.set(lesson.id,lesson);
+    }
+  }
 }
 function completedCount() { return getTasks().filter(t=>String(store.answers[t.id]??"").trim()).length; }
 function allStats() {
@@ -484,8 +669,159 @@ function allStats() {
   return {tasks:tasks.length,choice:choice.length,written:written.length,choiceGood,marked:marked.length,
     writtenGood,score:choiceGood+writtenGood,allMarked:marked.length===written.length,mistakes};
 }
+
+
+/**
+ * WriteLab 通用课程 JSON 模板。
+ * 与 normalizeCustomCourse() 兼容。
+ * 可用于英语、计算机、数学及其他学科。
+ */
+const COURSE_SECTION_TEMPLATE = {
+  format: "writelab-course",
+  version: 1,
+  id: "parallel-computing-01",
+  subject: "计算机科学",
+  title: "Parallel Computing · 基础训练",
+  subtitle: "理解并行计算的基本概念与性能瓶颈",
+  track: "Computer Science",
+  focus: "概念理解 + 主动输出",
+  topic: "Parallel Computing",
+
+  canDo: [
+    "理解核心概念",
+    "准确解释工作原理",
+    "分析实际问题"
+  ],
+
+  languageKit: [
+    [
+      "memory bandwidth",
+      "内存带宽",
+      "Memory bandwidth can limit performance.",
+      "注意与 memory latency 区分"
+    ]
+  ],
+
+  framework: "Definition → Mechanism → Example",
+  coach: "先独立完成，再查看答案与解析。",
+
+  sections: [
+    {
+      id: "concepts",
+      title: "01 · Concept Check",
+      subtitle: "基础概念判断",
+      minutes: 10,
+      durationLabel: "10 min",
+      tasks: [
+        {
+          id: "pc-q01",
+          type: "choice",
+          prompt: "Which concept helps prevent race conditions?",
+          options: [
+            "Synchronization",
+            "Increasing clock speed",
+            "Reducing code comments"
+          ],
+          answer: "Synchronization",
+          explanation: "同步机制用于协调并发访问。"
+        }
+      ]
+    },
+    {
+      id: "explanation",
+      title: "02 · Explain the Concept",
+      subtitle: "独立解释与应用",
+      minutes: 15,
+      durationLabel: "15 min",
+      tasks: [
+        {
+          id: "pc-q02",
+          type: "write",
+          prompt: "Explain why more threads do not always improve performance.",
+          answer: "Synchronization overhead and memory bandwidth limitations can reduce parallel speedup.",
+          explanation: "应讨论同步开销和内存带宽等因素。",
+          hint: "Consider synchronization and bandwidth.",
+          minWords: 40
+        }
+      ]
+    }
+  ]
+};
+
+
+/**
+ * 构造发给其他 ChatGPT 窗口的课程生成要求。
+ * 复制 Prompt 时包含完整的 sections JSON 模板。
+ */
+function buildCourseGenerationPrompt() {
+  return `你是一名专业课程设计师。
+
+请为我的 WriteLab 学习网站生成课程 JSON。
+
+要求：
+1. 严格遵守下面的 JSON 数据结构。
+2. 只返回一个合法 JSON 对象，不要 Markdown 代码块或额外解释。
+3. 使用 sections 数组组织课程模块。
+4. 每个 section 包含 id、title、subtitle、minutes 和 tasks。
+5. 每个 task 使用独立且不重复的 id。
+6. type 只能使用 "choice" 或 "write"。
+7. choice 必须提供 options、answer、explanation。
+8. choice 的 answer 必须与 options 中的某个选项完全相同。
+9. write 应提供 prompt、参考答案、解释，必要时添加 hint 和 minWords。
+10. 根据具体学科设计高质量题目，避免重复或空泛的问题。
+11. id 使用英文字母、数字、连字符或下划线，不包含空格。
+12. languageKit 可用于固定搭配、专业术语、定义或公式；每组是最多 4 个字符串的数组。
+13. 开放题的参考答案不是唯一正确答案，不要假装网站可以自动完成语义评分。
+14. 直接生成可被 WriteLab 首页导入的完整课程 JSON。
+
+以下是格式模板。请按照我的新课程需求替换全部示例内容：
+
+${JSON.stringify(COURSE_SECTION_TEMPLATE, null, 2)}
+
+我的课程需求：
+【在这里填写学科、主题、题目数量、难度和练习重点】`;
+}
+
+
+/**
+ * 将课程模板或课程生成 Prompt 复制到剪贴板。
+ * 复制失败时显示可手动复制的文本，不覆盖课程导入框。
+ */
+async function copyCourseTemplate(mode) {
+  const content = mode === "prompt"
+    ? buildCourseGenerationPrompt()
+    : JSON.stringify(COURSE_SECTION_TEMPLATE, null, 2);
+
+  const status = document.getElementById("course-template-status");
+  const fallback = document.getElementById("course-template-fallback");
+
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error("Clipboard unavailable");
+    }
+
+    await navigator.clipboard.writeText(content);
+
+    status.textContent = mode === "prompt"
+      ? "✓ 已复制完整课程生成 Prompt！"
+      : "✓ 已复制 sections JSON 模板！";
+
+    fallback.classList.add("hidden");
+  } catch (error) {
+    // 浏览器不支持自动复制时，显示文本供手动复制。
+    fallback.value = content;
+    fallback.classList.remove("hidden");
+    fallback.focus();
+    fallback.select();
+
+    status.textContent = "自动复制失败，请从下方文本框手动复制。";
+  }
+
+  status.classList.remove("hidden");
+}
+
 function renderHome() {
-  siteStatus.textContent=`${store.manifest.lessons.length} DAYS LIVE`;
+  siteStatus.textContent=`${store.manifest.lessons.length} DAYS · ${store.customLessons.size} CUSTOM`;
   document.title="WriteLab · English Writing Gym";
   const m=store.manifest;
   const cards=m.lessons.map(id=>{
@@ -501,6 +837,16 @@ function renderHome() {
     <h3>${escapeHTML(l.title)}</h3><p>${escapeHTML(l.subtitle)}</p>
     <div class="card-foot"><span>${escapeHTML(l.focus)} · 60 MIN</span><span>↗</span></div></a>`;
   }).join("");
+  const customCards=[...store.customLessons.values()].map(lesson=>{
+    const record=loadRecord(lesson.id),tasks=getTasks(lesson);
+    const answered=tasks.filter(t=>String(record.answers[t.id]??"").trim()).length;
+    return `<article class="lesson-card custom-lesson-card"><a href="#/${escapeHTML(lesson.id)}" class="custom-lesson-link">
+      <div class="card-top"><span class="card-day">${escapeHTML(lesson.subject)}</span><span class="card-state">${answered}/${tasks.length} 已答</span></div>
+      <h3>${escapeHTML(lesson.title)}</h3><p>${escapeHTML(lesson.subtitle)}</p>
+      <div class="card-foot"><span>${tasks.length} 题 · ${lesson.minutes} min</span><span>↗</span></div></a>
+      <div class="custom-card-actions"><button type="button" data-course-export="${escapeHTML(lesson.id)}">↓ 导出 JSON</button>
+      <button type="button" class="custom-delete" data-course-delete="${escapeHTML(lesson.id)}">移除</button></div></article>`;
+  }).join("");
   const weeks=m.weeks.map(w=>`<article class="week-card ${w.status==="available"?"current":""}"><span class="week-name">${escapeHTML(w.name)} ${w.status==="available"?"· OPEN":"· SOON"}</span><h3>${escapeHTML(w.headline)}</h3><p>${escapeHTML(w.goal)}</p><div class="week-days">DAY ${escapeHTML(w.days)}</div></article>`).join("");
   ui.innerHTML=`<section class="hero"><div><div class="eyebrow">ACTIVE WRITING · 28-DAY ROADMAP</div>
     <h1>${escapeHTML(m.heroTitle||"You know the words. Now make them work.")}</h1>
@@ -508,7 +854,70 @@ function renderHome() {
     <div class="tag-row"><span class="tag">01 / Collocations</span><span class="tag">02 / Sentence control</span><span class="tag">03 / Coherence</span><span class="tag">04 / Academic paragraphs</span></div></div>
     <aside class="hero-aside"><div><div class="aside-label">DAILY WRITING WORKOUT</div><div class="aside-num">60 <small>MIN / DAY</small></div><div class="aside-bottom">先尝试 → 再对照 → 然后重写。<br>真正的进步来自主动输出，而不是多看一遍范文。</div></div>
     <div class="aside-schedule"><span>08m · 搭配</span><span>12m · 造句</span><span>10m · 改写</span><span>10m · 逻辑</span><span>15m · 段落</span><span>05m · 复盘</span></div></aside></section>
-    <div class="section-heading"><div><div class="eyebrow">YOUR WEEK ONE</div><h2>开始真正写英文</h2></div><p>已开放 ${m.lessons.length} 天 · 每天 15 题</p></div>
+    <section class="panel course-importer" id="course-importer"><div class="course-import-head"><div class="eyebrow">CREATE WITHOUT CODING</div><h2>粘贴 JSON，立即生成新课程</h2>
+      <p>数据结构、线性代数、机器学习、英语写作……使用同一个练习系统。无需修改仓库文件或重新部署。</p></div>
+      <textarea id="course-json-input" aria-label="粘贴课程 JSON" spellcheck="false" placeholder='粘贴课程 JSON，例如 {"title":"线性代数练习","subject":"数学","questions":[...]}'></textarea>
+      <div class="course-import-actions"><button type="button" class="button primary" data-action="course-import">＋ 导入并生成课程</button>
+        <button type="button" class="button outline" data-action="course-example">填入示例</button>
+        <button type="button" class="button outline" data-action="course-file">↑ 上传 .json</button>
+        <button type="button" class="button outline" data-action="course-clear">清空文本框</button></div>
+      <input type="file" id="course-json-file" class="hidden" accept=".json,application/json">
+      <div class="course-backup-actions"><button type="button" class="mini-button" data-action="backup">↓ 备份全部课程与学习记录</button>
+        <button type="button" class="mini-button" data-action="import">↑ 恢复备份</button>
+        <input type="file" id="backup-import-home" class="hidden" accept=".json,application/json"></div>
+      <p class="course-import-note">新课程保存在当前浏览器的 localStorage，不会同步到 GitHub 或其他设备。请定期备份。客观题需要提供正确选项才能自动核对，开放题仍由你自行评价。</p>
+      <p id="course-import-status" role="status" class="course-import-status hidden"></p></section>
+
+<!-- 课程 JSON 格式复制工具 -->
+<section class="panel course-importer" id="course-template-section">
+
+  <div class="course-import-head">
+    <div class="eyebrow">COURSE TEMPLATE</div>
+
+    <h2>生成新的课程 JSON</h2>
+
+    <p>
+      复制 WriteLab 的 sections 标准格式，
+      让 ChatGPT 在其他窗口生成兼容的练习课程。
+    </p>
+  </div>
+
+  <div class="course-import-actions">
+
+    <button
+      type="button"
+      class="button primary"
+      data-action="copy-course-prompt">
+      ⧉ 复制 AI 课程生成 Prompt
+    </button>
+
+    <button
+      type="button"
+      class="button outline"
+      data-action="copy-course-template">
+      ⧉ 仅复制 JSON 模板
+    </button>
+
+  </div>
+
+  <p
+    id="course-template-status"
+    class="confirm-text hidden"
+    role="status">
+  </p>
+
+  <textarea
+    id="course-template-fallback"
+    class="backup hidden"
+    readonly
+    aria-label="手动复制课程模板">
+  </textarea>
+
+</section>
+
+    <section id="custom-lessons" class="custom-library"><div class="section-heading"><div><div class="eyebrow">YOUR LIBRARY</div><h2>我的自定义课程</h2></div><p>${store.customLessons.size} 门本地课程</p></div>
+      ${customCards?`<div class="lesson-grid">${customCards}</div>`:`<div class="custom-empty">还没有导入课程。把 ChatGPT 生成的课程 JSON 粘贴到上方即可开始。</div>`}</section>
+    <div class="section-heading"><div><div class="eyebrow">YOUR WEEK ONE</div><h2>原有英语写作课程</h2></div><p>已开放 ${m.lessons.length} 天 · 保留原来的 Day 01–07</p></div>
     <div class="lesson-grid">${cards}</div><div class="week-strip">${weeks}</div>
     <div class="info-note"><strong>关于评分：</strong>搭配选择题由浏览器自动判分；自由写作不存在可靠的离线自动语义评分。提交后会显示参考表达与分析，你需要自行判断是否达到要求，并进行二次改写。本网站不调用收费 AI 接口，也不上传你的写作。</div>`;
 }
@@ -552,7 +961,7 @@ function renderWritingAttempt(task,index,isEssay,v) {
 function renderTask(task,index,sectionId) {
   const v=store.answers[task.id]||"";
   const submitted=store.submitted;
-  const isEssay=sectionId==="paragraph";
+  const isEssay=sectionId==="paragraph" || (task.minWords||0)>=100;
   const choice=task.type==="choice";
   const options=choice?`<div class="quiz-options" role="radiogroup" aria-label="第 ${index} 题">
     ${task.options.map(opt=>`<label class="quiz-option"><input type="radio" name="${escapeHTML(task.id)}" data-answer="${escapeHTML(task.id)}" value="${escapeHTML(opt)}" ${opt===v?"checked":""} ${submitted?"disabled":""}><span>${escapeHTML(opt)}</span></label>`).join("")}</div>`
@@ -590,8 +999,8 @@ function renderDay(id) {
     store.feedbackHidden=record.feedbackHidden;
   }
   store.current=lesson;
-  siteStatus.textContent=`DAY ${pad(lesson.day)} / 28`;
-  document.title=`Day ${pad(lesson.day)} · ${lesson.title} · WriteLab`;
+  siteStatus.textContent=lesson.custom?lesson.subject:`DAY ${pad(lesson.day)} / 28`;
+  document.title=`${lesson.custom?lesson.subject:`Day ${pad(lesson.day)}`} · ${lesson.title} · WriteLab`;
   let number=0;
   const phases=lesson.sections.map(sec=>`<section class="phase" id="phase-${escapeHTML(sec.id)}"><header class="phase-head">
     <div class="phase-headtop"><h2>${escapeHTML(sec.title)}</h2><span class="phase-duration">${escapeHTML(sec.durationLabel)}</span></div>
@@ -606,12 +1015,13 @@ function renderDay(id) {
     : `<section class="panel panel-pad kit-locked"><h2 class="card-heading">🔒 Language Kit</h2>
         <p>为了训练主动回忆，今日固定搭配和例句会在提交练习后显示。</p>
         <span class="kit-locked-label">完成练习后解锁</span></section>`;
-  const idx=store.manifest.lessons.indexOf(id),next=store.manifest.lessons[idx+1];
-  ui.innerHTML=`<a class="back" href="#/">← 返回训练首页</a><header class="lesson-hero"><div class="eyebrow">DAY ${pad(lesson.day)} · ${escapeHTML(lesson.track)}</div>
+  const idx=store.manifest.lessons.indexOf(id),next=idx>=0?store.manifest.lessons[idx+1]:null;
+  const duration=lesson.custom?lesson.minutes:60;
+  ui.innerHTML=`<a class="back" href="#/">← 返回训练首页</a><header class="lesson-hero"><div class="eyebrow">${lesson.custom?escapeHTML(lesson.subject):`DAY ${pad(lesson.day)}`} · ${escapeHTML(lesson.track)}</div>
     <h1>${escapeHTML(lesson.title)}</h1><p>${escapeHTML(lesson.subtitle)}</p>
-    <div class="tag-row" style="margin-top:18px"><span class="tag">60 MIN</span><span class="tag">${number} TASKS</span><span class="tag">${escapeHTML(lesson.focus)}</span></div>
+    <div class="tag-row" style="margin-top:18px"><span class="tag">${duration} MIN</span><span class="tag">${number} TASKS</span><span class="tag">${escapeHTML(lesson.focus)}</span></div>
   </header><div class="lesson-layout"><div class="study-main"><section class="panel timeline"><div class="timeline-top"><span>训练进度</span><span id="progress-text">0 / ${number}</span></div>
-    <div class="track"><div id="progress-fill" class="track-fill"></div></div><div class="timer-line"><div class="timer-count"><span id="timer-display">00:00</span><small> / 60:00</small></div>
+    <div class="track"><div id="progress-fill" class="track-fill"></div></div><div class="timer-line"><div class="timer-count"><span id="timer-display">00:00</span><small> / ${pad(duration)}:00</small></div>
     <div class="timer-actions"><button type="button" class="timer-button" id="timer-toggle" data-action="timer">▶ 开始计时</button><button type="button" class="timer-button backup-button" data-action="backup">↓ 备份</button><button type="button" class="timer-button backup-button" data-action="import">↑ 恢复</button></div></div>
     <input type="file" id="backup-import" accept="application/json,.json" class="hidden" aria-label="导入 WriteLab 本地记录"></section>
     <div class="coach-note"><strong>COACH'S NOTE</strong>${escapeHTML(lesson.coach)}</div>${renderFeedbackImporter()}${phases}
@@ -665,7 +1075,7 @@ function updateResults() {
 }
 function copyText() {
   const l=store.current,qs=getTasks(),s=allStats();
-  return [`WriteLab · Day ${pad(l.day)} — ${l.title}`,s.allMarked?`Self-reviewed result: ${s.score}/${s.tasks}`:`Objective: ${s.choiceGood}/${s.choice}; Writing reviewed: ${s.marked}/${s.written}`,
+  return [`WriteLab · ${l.custom?l.subject:`Day ${pad(l.day)}`} — ${l.title}`,s.allMarked?`Self-reviewed result: ${s.score}/${s.tasks}`:`Objective: ${s.choiceGood}/${s.choice}; Writing reviewed: ${s.marked}/${s.written}`,
     `Time tracked: ${formatClock(timerElapsed())}`,`Needs rewriting: ${s.mistakes.map(x=>x.id).join(", ")||"none"}`,"",
     // 不改变旧版教练请求中 MY ANSWER 的语义，追加批注和第二遍（有内容时）。
     ...qs.map((q,i)=>{
@@ -820,7 +1230,8 @@ ui.addEventListener("input",event=>{
 });
 ui.addEventListener("change",event=>{
   const el=event.target;
-  if(el.id==="backup-import") {importBackup(el.files?.[0]);el.value="";return;}
+  if(el.id==="backup-import" || el.id==="backup-import-home") {importBackup(el.files?.[0]);el.value="";return;}
+  if(el.id==="course-json-file") {importCourseFile(el.files?.[0]);el.value="";return;}
   // AI 批改文件是独立的输入，不会触发“恢复学习记录”的覆盖操作。
   if(el.id==="feedback-file-input") {importFeedbackFile(el.files?.[0]);el.value="";return;}
   if (el.matches("input[data-rubric]")) {store.rubric[el.dataset.rubric]=el.checked;saveRecord();return;}
@@ -828,7 +1239,29 @@ ui.addEventListener("change",event=>{
   store.answers[el.dataset.answer]=el.value;saveRecord();updateProgress();
 });
 ui.addEventListener("click",event=>{
-  const button=event.target.closest("button"); if(!button || !store.current) return;
+  const button=event.target.closest("button"); if(!button)return;
+  // 首页操作不依赖 store.current；课程导入后立即可见，无须 Git push。
+  if(button.dataset.courseExport) {exportCustomCourse(button.dataset.courseExport);return;}
+  if(button.dataset.courseDelete) {deleteCustomCourse(button.dataset.courseDelete);return;}
+  switch(button.dataset.action) {
+    case "copy-course-prompt":
+  // 复制完整的 AI 生成要求和 sections 模板。
+  copyCourseTemplate("prompt");
+  return;
+
+
+case "copy-course-template":
+// 只复制合法的课程 JSON 示例。
+copyCourseTemplate("json");
+return;
+    case "course-import": importCourseFromHome();return;
+    case "course-file": document.getElementById("course-json-file")?.click();return;
+    case "course-example": document.getElementById("course-json-input").value=JSON.stringify(CUSTOM_COURSE_EXAMPLE,null,2);return;
+    case "course-clear": document.getElementById("course-json-input").value="";return;
+    case "backup": exportBackup();return;
+    case "import": (document.getElementById("backup-import-home")||document.getElementById("backup-import"))?.click();return;
+  }
+  if(!store.current)return;
   if(button.dataset.attempt) {
     store.attemptViews[button.dataset.attempt]=Number(button.dataset.round);
     saveRecord();
