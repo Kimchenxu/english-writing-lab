@@ -562,8 +562,11 @@ function exportBackup() {
     }
   } catch (_) { alert("浏览器无法读取本地存储，请检查隐私设置。");return; }
   // v2 备份同时包含自定义题库和各课程的作答；仍兼容读取旧版 v1 备份。
+  // Never silently omit corrupted review/exam records from a backup.
+  let languageLab;
+  try {languageLab=LanguageLab.read(true);}catch(e){alert("复习/考试存档无法读取："+e.message+"；请先保留原始浏览器数据。");return;}
   const snapshot={format:"writelab-local-backup",version:2,exportedAt:new Date().toISOString(),
-    courses:[...store.customLessons.values()],records,languageLab:LanguageLab.read()};
+    courses:[...store.customLessons.values()],records,languageLab};
   downloadJSON(snapshot,`writelab-backup-${new Date().toISOString().slice(0,10)}.json`);
 }
 
