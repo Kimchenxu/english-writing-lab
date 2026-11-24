@@ -62,7 +62,7 @@ const LanguageLab = (() => {
     if(!Array.isArray(rawSections)) return legacy({...input,version:1});
     const sections=rawSections.map(sec=>{
       if(!isObject(sec)||!Array.isArray(sec.tasks)) throw Error("sections.tasks 必须是数组");
-      return {...sec,tasks:sec.tasks.map(t=>{
+      return {...sec,notes:strings(sec.notes,"section.notes",20,2000),tasks:sec.tasks.map(t=>{
         if(!isObject(t)) throw Error("题目必须为对象");
         const raw=String(t.kind||t.type||"write").toLowerCase();
         const k=({multiple_choice:"choice","multiple-choice":"choice",quiz:"choice",essay:"write",text:"write",short:"write",short_answer:"write",open:"write"})[raw]||raw;
@@ -91,7 +91,8 @@ const LanguageLab = (() => {
       lessonType,examMinutes:integer(input.examMinutes,"examMinutes",1,180,30),
       prerequisites:strings(input.prerequisites,"prerequisites"),
       objectives:strings(input.objectives,"objectives"),
-      sections:base.sections.map((sec,i)=>({...sec,tasks:sec.tasks.map((t,j)=>{
+      studyNotes:strings(input.studyNotes,"studyNotes",20,2000),
+      sections:base.sections.map((sec,i)=>({...sec,notes:sections[i].notes,tasks:sec.tasks.map((t,j)=>{
         const raw=sections[i].tasks[j];
         return {...t,kind:raw.kind,tags:raw.tags,acceptedAnswers:raw.acceptedAnswers,audioText:raw.audioText,caseSensitive:raw.caseSensitive};
       })}))};
@@ -218,6 +219,10 @@ const LanguageLab = (() => {
       oldDay(id);
       if(!store.current||store.current.id!==id)return;
       const lang=metadata(store.current).language;
+      // Optional instructional notes are visible in practice, never in exam snapshots.
+      const notesHTML=notes=>'<div class="lab-study-notes"><strong>学习讲解</strong>'+notes.map(n=>'<p>'+esc(n)+'</p>').join("")+'</div>';
+      if(store.current.studyNotes?.length)ui.querySelector(".coach-note")?.insertAdjacentHTML("afterend",notesHTML(store.current.studyNotes));
+      for(const sec of store.current.sections)if(sec.notes?.length)document.getElementById("phase-"+sec.id)?.querySelector(".phase-head")?.insertAdjacentHTML("afterend",notesHTML(sec.notes));
       ui.querySelectorAll("textarea[data-answer],textarea[data-revision]").forEach(el=>el.lang=lang);
       if(store.submitted)ui.querySelectorAll(".kit-head").forEach((el,i)=>{
         const entry=store.current.languageKit[i];
@@ -232,15 +237,15 @@ const LanguageLab = (() => {
     Object.assign(COURSE_SECTION_TEMPLATE,{version:2,id:"spanish-a1-day01",subject:"西班牙语",language:"es-ES",level:"A1",
       program:"spanish-a1",unit:1,week:1,day:1,category:"综合",lessonType:"learning",objectives:["greetings"],prerequisites:[],
       title:"Saludos y presentaciones",subtitle:"问候与自我介绍",track:"Spanish A1",focus:"问候与发音",topic:"greetings",
-      canDo:["能够简单问候"],framework:"问候 → 自我介绍 → 结束语",coach:"先独立作答，再朗读。",
+      studyNotes:["Hola 是日常问候；Buenos días 是上午的问候。","西班牙语重音符号会影响拼写和重音位置，不要省略。"],canDo:["能够简单问候"],framework:"问候 → 自我介绍 → 结束语",coach:"先独立作答，再朗读。",
       languageKit:[["Hola","你好","Hola, ¿qué tal?",""]],
-      sections:[{id:"basics",title:"练习",subtitle:"拼写、听力与口语",minutes:15,tasks:[
+      sections:[{id:"basics",title:"练习",subtitle:"拼写、听力与口语",minutes:15,notes:["ser 是表示身份等属性的动词，yo soy 表示我是。"],tasks:[
         {id:"es-q1",type:"fill",prompt:"用西语写：你好",answer:"Hola",acceptedAnswers:["¡Hola!"],tags:["greetings"],explanation:"Hola 用于日常问候。"},
         {id:"es-q2",type:"conjugation",prompt:"yo ___ (ser)",answer:"soy",tags:["ser"],explanation:"ser 的第一人称单数是 soy。"},
         {id:"es-q3",type:"listening",prompt:"听录音并写出所听到的内容",audioText:"Buenos días",answer:"Buenos días",tags:["listening"]},
         {id:"es-q4",type:"speaking",prompt:"向朋友用西语问好并自我介绍。",answer:"Hola, me llamo Ana.",tags:["speaking"]}
       ]}]});
-    buildCourseGenerationPrompt=()=>oldGeneration().replace('type 只能使用 "choice" 或 "write"。','type 支持 choice、write、fill、conjugation、listening、speaking、flashcard。fill/conjugation/flashcard/listening 需 answer，可有 acceptedAnswers；listening 必须有 audioText，可选 options；speaking 为开放题。每题添加 tags，课程添加 language、program、level、unit、week、day、category、lessonType、objectives。考试 lessonType 可为 weekly、unit、final，并添加 examMinutes。');
+    buildCourseGenerationPrompt=()=>oldGeneration().replace('type 只能使用 "choice" 或 "write"。','type 支持 choice、write、fill、conjugation、listening、speaking、flashcard。fill/conjugation/flashcard/listening 需 answer，可有 acceptedAnswers；listening 必须有 audioText，可选 options；speaking 为开放题。每题添加 tags，课程添加 language、program、level、unit、week、day、category、lessonType、objectives。studyNotes 和 section.notes 是练习前的讲解字符串数组；考试不得在题目 prompt 中泄漏答案。考试 lessonType 可为 weekly、unit、final，并添加 examMinutes。');
 
     function sourceStatus(l,t,r){
       if(!r.submitted)return null;
@@ -327,7 +332,7 @@ const LanguageLab = (() => {
       const active=state.exams.find(e=>e.id===examId);
       examDeadline=active?.finished===null?active.deadline:null;
       const program=filter==="*"?programs[0]:filter;
-      root.innerHTML='<section class="panel lab-panel"><div class="eyebrow">LANGUAGE LAB · 学习工作台</div><h2>课程分类</h2><div class="lab-tools">'+
+      root.innerHTML='<section class="panel lab-panel" id="lab-catalog"><div class="eyebrow">LANGUAGE LAB · 学习工作台</div><h2>课程分类</h2><div class="lab-tools">'+
         '<label>语言 <select id="lab-language">'+options([["*","全部语言"],...languages.map(p=>[p,p])],languageFilter)+'</select></label>'+
         '<label>学习计划 <select id="lab-program">'+options([["*","全部计划"],...programs.map(p=>[p,p])],filter)+'</select></label>'+
         '<label>分类 <select id="lab-category">'+options([["*","全部分类"],...categories.map(p=>[p,p])],category)+'</select></label>'+
@@ -359,7 +364,7 @@ const LanguageLab = (() => {
       document.title="WriteLab · LanguageLab";
       siteStatus.textContent=allLessons().length+" COURSES";
       const hero=ui.querySelector(".hero");
-      if(hero)hero.innerHTML='<div><div class="eyebrow">ACTIVE LEARNING · MULTILINGUAL</div><h1>LanguageLab.</h1><p class="hero-intro">从语言基础到真实表达：学习、复习、测试、持续进步。</p></div><aside class="hero-aside"><div class="aside-label">ONE WORKSPACE</div><div class="aside-num">'+allLessons().length+' <small>COURSES</small></div><p>保留原 WriteLab 学习记录。</p></aside>';
+      if(hero)hero.innerHTML='<div><div class="eyebrow">ACTIVE LEARNING · MULTILINGUAL</div><h1>LanguageLab.</h1><p class="hero-intro">从语言基础到真实表达：学习、复习、测试、持续进步。</p><div class="lab-tools"><button class="button outline" data-lab="scroll" data-id="lab-catalog">课程</button><button class="button outline" data-lab="scroll" data-id="lab-review">复习</button><button class="button outline" data-lab="scroll" data-id="lab-exams">考试</button><button class="button outline" data-lab="scroll" data-id="course-importer">导入课程</button><button class="button primary" data-lab="spanish-example">西语示例</button></div></div><aside class="hero-aside"><div class="aside-label">ONE WORKSPACE</div><div class="aside-num">'+allLessons().length+' <small>COURSES</small></div><p>保留原 WriteLab 学习记录。</p></aside>';
       const library=document.getElementById("custom-lessons");
       if(library){
         // Legacy library is followed by the old English header, grid, week strip.
@@ -453,6 +458,12 @@ const LanguageLab = (() => {
       const b=event.target.closest("button[data-lab]");if(!b)return;
       event.preventDefault();event.stopImmediatePropagation();
       const a=b.dataset.lab;
+      if(a==="scroll"){document.getElementById(b.dataset.id)?.scrollIntoView({behavior:"smooth"});return;}
+      if(a==="spanish-example"){
+        const input=document.getElementById("course-json-input");
+        if(input){input.value=JSON.stringify(COURSE_SECTION_TEMPLATE,null,2);input.focus();input.scrollIntoView({behavior:"smooth"});}
+        return;
+      }
       if(a==="speak"){speak(b.dataset.value,b.dataset.lang);return;}
       if(a==="mic"){mic(b.dataset.target,b.dataset.lang);return;}
       if(a==="review-mode"){reviewMode=b.dataset.value;renderWorkspace();return;}
