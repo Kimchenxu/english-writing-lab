@@ -1,0 +1,30 @@
+/* LanguageLab additions: reuse the original theme, responsive grid and buttons. */
+.lab-panel { margin: 24px 0; padding: clamp(16px, 3vw, 30px); }
+.lab-panel h2 { margin: 5px 0 16px; }
+.lab-panel h3 { margin: 22px 0 12px; }
+.lab-tools { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 10px 0; }
+.lab-tools label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--muted, #666); }
+.lab-tools select, .lab-tools input { max-width: 100%; min-height: 38px; padding: 8px; border: 1px solid var(--line, #d7d7d0); border-radius: 6px; background: var(--paper, white); color: inherit; font: inherit; }
+.lab-tools input { width: 100px; }
+.lab-meta { font-size: 13px; color: var(--muted, #666); margin: 10px 0; overflow-wrap: anywhere; }
+.lab-card, .lab-history { border-top: 1px solid var(--line, #ddd); padding: 14px 0; overflow-wrap: anywhere; }
+.lab-card summary { cursor: pointer; line-height: 1.6; }
+.lab-card summary small { color: var(--muted, #666); }
+.lab-card p { white-space: pre-wrap; }
+.lab-history { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.lab-skill { display: grid; grid-template-columns: minmax(100px, 1fr) minmax(70px, 1fr) auto; align-items: center; gap: 10px; margin: 10px 0; font-size: 14px; overflow-wrap: anywhere; }
+.lab-skill progress { width: 100%; accent-color: var(--accent, #355947); }
+.lab-short { min-height: 65px; }
+.lab-exam .task { margin: 14px 0; }
+.lab-exam > p strong { font-variant-numeric: tabular-nums; }
+.lab-panel .mini-button.active { outline: 2px solid currentColor; outline-offset: 2px; }
+@media(max-width: 600px) {
+  .lab-panel { padding: 14px; }
+  .lab-tools label { max-width: 100%; }
+  .lab-skill { grid-template-columns: minmax(80px, 1fr) minmax(60px, 1fr) auto; }
+}
+
+/* Instructional content is available during practice, not during exams. */
+.lab-study-notes { margin: 12px 0 18px; padding: 14px 16px; border-inline-start: 3px solid var(--accent, #355947); background: rgba(120,120,100,.07); border-radius: 4px; line-height: 1.7; }
+.lab-study-notes p { margin: 6px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lab-review-entry > .mini-button { margin-top: 8px; }

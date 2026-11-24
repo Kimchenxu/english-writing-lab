@@ -1,0 +1,308 @@
+{
+  "format": "writelab-course",
+  "version": 2,
+  "id": "spanish-a1-day01",
+  "subject": "西班牙语",
+  "language": "es-ES",
+  "program": "spanish-a1",
+  "level": "A1",
+  "unit": 1,
+  "week": 1,
+  "day": 1,
+  "category": "发音与会话",
+  "lessonType": "learning",
+  "title": "Día 01 · Saludos y presentaciones",
+  "subtitle": "零基础：发音、问候与自我介绍（西班牙本土西语）",
+  "track": "Español A1",
+  "focus": "问候 / 自我介绍 / 基础发音",
+  "topic": "Saludos",
+  "objectives": [
+    "greetings",
+    "pronunciation",
+    "ser-present",
+    "introductions"
+  ],
+  "prerequisites": [],
+  "studyNotes": [
+    "西语的五个基本元音 a/e/i/o/u 发音相对稳定。不要把 h 发出声音（如 hola）；ñ 是独立字母；j 常读类似喉部摩擦音。西班牙不同地区发音有差异。",
+    "¡ 和 ¿ 分别用于感叹句、疑问句的开头。重音符号 ´ 与 ñ 不是装饰：sí（是）和 si（如果）意义不同。",
+    "先阅读每组简短讲解，然后独立做题。听力可以重复播放。口语题可使用麦克风转写或自己输入，交卷后对照示例。"
+  ],
+  "canDo": [
+    "使用常见问候语",
+    "理解 yo/tú 和 ser 的两个形式",
+    "问对方姓名并简单自我介绍"
+  ],
+  "languageKit": [
+    [
+      "Hola",
+      "你好",
+      "¡Hola! ¿Qué tal?",
+      "h 不发音"
+    ],
+    [
+      "Buenos días",
+      "早上好",
+      "Buenos días, ¿cómo estás?",
+      "días 有重音符号"
+    ],
+    [
+      "¿Qué tal?",
+      "怎么样？",
+      "¡Hola! ¿Qué tal?",
+      "qué 有重音符号"
+    ],
+    [
+      "Me llamo…",
+      "我叫……",
+      "Me llamo Ana.",
+      "ll 的实际发音因地区而异"
+    ],
+    [
+      "Encantado / Encantada",
+      "很高兴认识你",
+      "¡Encantada!",
+      "根据说话者选择形式"
+    ],
+    [
+      "Gracias",
+      "谢谢",
+      "Muchas gracias.",
+      ""
+    ],
+    [
+      "Hasta luego",
+      "回头见",
+      "¡Hasta luego!",
+      ""
+    ]
+  ],
+  "framework": "问候 → 问候回应 → 交换姓名 → 道别",
+  "coach": "先理解再输出；西班牙朋友之间通常使用非正式 tú。初次见面也可使用较正式的表达，视情境而定。",
+  "sections": [
+    {
+      "id": "pronunciation",
+      "title": "01 · 发音与拼写",
+      "subtitle": "认识元音、重音符号和常见字母",
+      "minutes": 10,
+      "notes": [
+        "hola 的 h 不发音。ñ 如 mañana 中的音，与普通 n 不同。",
+        "西班牙许多地区的 z、ce、ci 发 /θ/，但西班牙也有使用 /s/ 的地区。"
+      ],
+      "tasks": [
+        {
+          "id": "p1",
+          "type": "choice",
+          "prompt": "hola 中哪一个字母通常不发音？",
+          "options": [
+            "h",
+            "o",
+            "l"
+          ],
+          "answer": "h",
+          "tags": [
+            "pronunciation"
+          ],
+          "explanation": "西班牙语的 h 通常不发音。"
+        },
+        {
+          "id": "p2",
+          "type": "choice",
+          "prompt": "哪一项是“是”的正确拼写？",
+          "options": [
+            "sí",
+            "si"
+          ],
+          "answer": "sí",
+          "tags": [
+            "pronunciation"
+          ],
+          "explanation": "sí 是肯定回答；si 常表示如果。"
+        },
+        {
+          "id": "p3",
+          "type": "listening",
+          "prompt": "听音频，写出这个问候语。",
+          "audioText": "Hola",
+          "answer": "Hola",
+          "acceptedAnswers": [
+            "¡Hola!"
+          ],
+          "tags": [
+            "pronunciation",
+            "greetings"
+          ],
+          "explanation": "Hola 是通用问候。"
+        }
+      ]
+    },
+    {
+      "id": "greetings",
+      "title": "02 · 问候与回应",
+      "subtitle": "能问好并回应对方",
+      "minutes": 10,
+      "notes": [
+        "Hola = 你好。Buenos días = 早上好。Buenas tardes = 下午好/较早的晚间问候。Buenas noches = 晚上好/晚安。",
+        "¿Qué tal? / ¿Cómo estás? = 你怎么样？Muy bien, gracias. ¿Y tú? = 很好，谢谢。你呢？"
+      ],
+      "tasks": [
+        {
+          "id": "g1",
+          "type": "fill",
+          "prompt": "用西语写：早上好。",
+          "answer": "Buenos días",
+          "acceptedAnswers": [
+            "¡Buenos días!"
+          ],
+          "tags": [
+            "greetings"
+          ],
+          "explanation": "días 有重音符号。"
+        },
+        {
+          "id": "g2",
+          "type": "choice",
+          "prompt": "朋友说 ¿Qué tal?，最自然的回答是？",
+          "options": [
+            "Muy bien, gracias.",
+            "Hasta luego.",
+            "Me llamo Luis."
+          ],
+          "answer": "Muy bien, gracias.",
+          "tags": [
+            "greetings"
+          ],
+          "explanation": "用 Muy bien, gracias 回应问候。"
+        },
+        {
+          "id": "g3",
+          "type": "fill",
+          "prompt": "写出“谢谢”。",
+          "answer": "Gracias",
+          "acceptedAnswers": [
+            "¡Gracias!"
+          ],
+          "tags": [
+            "greetings"
+          ]
+        },
+        {
+          "id": "g4",
+          "type": "listening",
+          "prompt": "听音频并写出整句，注意重音符号。",
+          "audioText": "Buenos días",
+          "answer": "Buenos días",
+          "acceptedAnswers": [
+            "¡Buenos días!"
+          ],
+          "tags": [
+            "listening",
+            "greetings"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ser",
+      "title": "03 · 人称与 ser",
+      "subtitle": "yo、tú 与身份介绍",
+      "minutes": 10,
+      "notes": [
+        "yo = 我，tú = 你（非正式）。ser 表示身份、国籍等：yo soy，tú eres。西语常省略主语：Soy estudiante。",
+        "问姓名：¿Cómo te llamas?；回答：Me llamo Ana。先把这两个表达当成常用句块，之后再学习反身动词。"
+      ],
+      "tasks": [
+        {
+          "id": "s1",
+          "type": "conjugation",
+          "prompt": "yo ___ (ser)",
+          "answer": "soy",
+          "tags": [
+            "ser-present"
+          ],
+          "explanation": "第一人称单数为 soy。"
+        },
+        {
+          "id": "s2",
+          "type": "conjugation",
+          "prompt": "tú ___ (ser)",
+          "answer": "eres",
+          "tags": [
+            "ser-present"
+          ],
+          "explanation": "第二人称单数为 eres。"
+        },
+        {
+          "id": "s3",
+          "type": "fill",
+          "prompt": "完成：___ estudiante.（我是学生，只填一个词）",
+          "answer": "Soy",
+          "tags": [
+            "ser-present",
+            "introductions"
+          ]
+        },
+        {
+          "id": "s4",
+          "type": "choice",
+          "prompt": "哪句用于询问对方的姓名？",
+          "options": [
+            "¿Cómo te llamas?",
+            "¿Qué tal?",
+            "¿Y tú?"
+          ],
+          "answer": "¿Cómo te llamas?",
+          "tags": [
+            "introductions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "conversation",
+      "title": "04 · 真实交流",
+      "subtitle": "建立第一段日常对话",
+      "minutes": 15,
+      "notes": [
+        "示例：A: ¡Hola! ¿Qué tal? B: Muy bien, gracias. ¿Y tú? A: Bien. ¿Cómo te llamas? B: Me llamo Ana. ¡Encantada!",
+        "道别可以说 Hasta luego 或 Adiós。Encantado/Encantada 通常随说话者变化。"
+      ],
+      "tasks": [
+        {
+          "id": "c1",
+          "type": "flashcard",
+          "prompt": "回头见（用西语）",
+          "answer": "Hasta luego",
+          "acceptedAnswers": [
+            "¡Hasta luego!"
+          ],
+          "tags": [
+            "greetings"
+          ]
+        },
+        {
+          "id": "c2",
+          "type": "speaking",
+          "prompt": "用西语向朋友问好，介绍你的姓名，并问对方叫什么。可录入语音转写。",
+          "answer": "¡Hola! Me llamo Ana. ¿Cómo te llamas?",
+          "explanation": "姓名换成自己的名字。注意疑问句标点和重音符号。",
+          "tags": [
+            "introductions",
+            "speaking"
+          ]
+        },
+        {
+          "id": "c3",
+          "type": "write",
+          "prompt": "写一段四句左右的西语对话：问候、回应、交换姓名、道别。",
+          "answer": "A: ¡Hola! ¿Qué tal?\nB: Muy bien, gracias. Me llamo Ana.\nA: Me llamo Luis. ¡Encantado!\nB: ¡Hasta luego!",
+          "explanation": "参考答案并非唯一；检查问候、姓名和道别是否自然。",
+          "tags": [
+            "introductions",
+            "greetings"
+          ]
+        }
+      ]
+    }
+  ]
+}
