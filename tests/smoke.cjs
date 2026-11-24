@@ -31,7 +31,7 @@ async function main(){
   assert.equal(old.language,"en-US");
   assert.equal(old.sections[0].tasks[1].type,"write");
   const input={format:"writelab-course",version:2,id:"spanish-a1-day01",title:"Saludos",subject:"西班牙语",
-    language:"es-ES",level:"A1",program:"spanish-a1",unit:1,week:1,day:1,category:"grammar",
+    language:"es-MX",level:"A1",program:"spanish-a1",unit:1,week:1,day:1,category:"grammar",
     lessonType:"learning",objectives:["ser"],studyNotes:["Study"],sections:[{id:"s1",title:"Practice",notes:["Note"],tasks:[
       {id:"q1",type:"conjugation",prompt:"yo (ser)",answer:"soy",tags:["ser"]},
       {id:"q2",type:"listening",prompt:"listen",audioText:"sí",answer:"sí"},
@@ -39,7 +39,7 @@ async function main(){
       {id:"q4",type:"fill",prompt:"hello",answer:"Hola",acceptedAnswers:["¡Hola!"]}
     ]}]};
   const lesson=api.normalizeCustomCourse(input);
-  assert.equal(lesson.language,"es-ES");
+  assert.equal(lesson.language,"es-MX");
   assert.equal(lesson.program,"spanish-a1");
   assert.equal(lesson.week,1);
   assert.deepEqual(lesson.studyNotes,["Study"]);
@@ -71,8 +71,8 @@ async function main(){
   assert.equal(L.schedule(first,false,0).due,600000);
   const state=L.validateState({version:1,reviews:{"lesson/q1":first},exams:[
     {id:"exam-test",mode:"weekly",program:"spanish-a1",scope:1,started:1,deadline:10,finished:null,
-      items:[{id:"q1",type:"write",kind:"fill",prompt:"hi",answer:"hola",language:"es-ES"},
-        {id:"q2",type:"write",kind:"speaking",prompt:"speak",answer:"Hola",language:"es-ES"}],
+      items:[{id:"q1",type:"write",kind:"fill",prompt:"hi",answer:"hola",language:"es-MX"},
+        {id:"q2",type:"write",kind:"speaking",prompt:"speak",answer:"Hola",language:"es-MX"}],
       answers:{q1:"  Hola  ",q2:"Hola"},marks:{}}
   ]});
   assert.equal(state.exams[0].answers.q1,"  Hola  ");
@@ -91,7 +91,7 @@ async function main(){
   api.setDownloader(x=>backup=x);
   api.exportBackup();
   assert.equal(backup.languageLab.exams.length,1);
-  assert.equal(backup.courses[0].language,"es-ES");
+  assert.equal(backup.courses[0].language,"es-MX");
   assert.equal(JSON.parse(backup.records[originalKey]).answers.q1,"soy");
   localStorage.removeItem(L.KEY);localStorage.removeItem(originalKey);
   await api.importBackup({text:async()=>JSON.stringify(backup)});
@@ -102,7 +102,7 @@ async function main(){
   // The examples must pass the same runtime validator as real imports.
   for(const file of ["examples/spanish-a1-day01.json","examples/spanish-a1-week01-exam.json"]){
     const sample=api.normalizeCustomCourse(JSON.parse(read(file)));
-    assert.equal(sample.language,"es-ES");
+    assert.equal(sample.language,"es-MX");
     assert(sample.sections.flatMap(s=>s.tasks).length>0);
   }
   const manifest=JSON.parse(read("lessons/index.json"));
