@@ -505,7 +505,7 @@ function importCourseFromHome() {
     renderHome();
     document.getElementById("course-import-status").textContent=`✓ 已添加《${lesson.title}》，可直接打开答题。`;
     document.getElementById("course-import-status").classList.remove("hidden");
-    document.getElementById("custom-lessons")?.scrollIntoView({behavior:"smooth",block:"start"});
+    (document.getElementById("lab-catalog")||document.getElementById("custom-lessons"))?.scrollIntoView({behavior:"smooth",block:"start"});
   } catch(e) {status.textContent=`导入失败：${e.message}`;status.classList.remove("hidden");}
 }
 async function importCourseFile(file) {
