@@ -14,7 +14,7 @@
 新课建议使用 format="writelab-course", version=2。支持原 v1 的 sections/tasks 和 questions 简写。每份课程最多 20 sections / 200 tasks，每个 section 最多 100 tasks。保留原有最多 100 门自定义课程的限制。
 
 字段：
-- language: BCP-47，如 es-ES、en-US、ja-JP；非语言课程可用 und。
+- language: BCP-47，如 es-MX、en-US、ja-JP；非语言课程可用 und。
 - program: 稳定学习计划 ID，如 spanish-a1；保持相同计划所有课程一致。
 - level、category: 分类；unit、week、day: 非负整数，0 为未指定。
 - lessonType: learning / review / weekly / unit / final；examMinutes: 1–180。
@@ -48,7 +48,7 @@
 - speaking: 开放题，可手动输入或在浏览器支持时使用麦克风转写。不是专业发音评分，识别结果不保证正确。浏览器/系统可能使用联网识别服务；网站不保存音频，转写作为普通文本保存。
 - write: 开放题；保留初稿、二次写作、自评和 AI 批改。
 
-TTS 优先选对应语言的设备语音，若只找到同语言其他地区的语音则使用该语音；设备可能缺少 es-ES 语音。使用麦克风前会说明第三方处理风险并请求确认。Firefox/Safari/Chrome 支持程度可能不同，建议使用 HTTPS 或 localhost，且授予麦克风权限。未支持时仍可手动作答。
+示例课程使用墨西哥西语 es-MX；其他地区（如 es-ES）仍可导入。TTS 优先选对应语言的设备语音，若只找到同语言其他地区的语音则使用该语音；设备可能缺少 es-MX 语音。使用麦克风前会说明第三方处理风险并请求确认。Firefox/Safari/Chrome 支持程度可能不同，建议使用 HTTPS 或 localhost，且授予麦克风权限。未支持时仍可手动作答。
 
 ## 存档与兼容
 
