@@ -3,7 +3,7 @@
   "version": 2,
   "id": "spanish-a1-day01",
   "subject": "西班牙语",
-  "language": "es-ES",
+  "language": "es-MX",
   "program": "spanish-a1",
   "level": "A1",
   "unit": 1,
@@ -12,8 +12,8 @@
   "category": "发音与会话",
   "lessonType": "learning",
   "title": "Día 01 · Saludos y presentaciones",
-  "subtitle": "零基础：发音、问候与自我介绍（西班牙本土西语）",
-  "track": "Español A1",
+  "subtitle": "零基础：发音、问候与自我介绍（墨西哥西语）",
+  "track": "Español de México · A1",
   "focus": "问候 / 自我介绍 / 基础发音",
   "topic": "Saludos",
   "objectives": [
@@ -24,7 +24,7 @@
   ],
   "prerequisites": [],
   "studyNotes": [
-    "西语的五个基本元音 a/e/i/o/u 发音相对稳定。不要把 h 发出声音（如 hola）；ñ 是独立字母；j 常读类似喉部摩擦音。西班牙不同地区发音有差异。",
+    "西语的五个基本元音 a/e/i/o/u 发音相对稳定。hola 的 h 不发音；ñ 是独立字母；j 通常是摩擦音，具体发音因地区而异。",
     "¡ 和 ¿ 分别用于感叹句、疑问句的开头。重音符号 ´ 与 ñ 不是装饰：sí（是）和 si（如果）意义不同。",
     "先阅读每组简短讲解，然后独立做题。听力可以重复播放。口语题可使用麦克风转写或自己输入，交卷后对照示例。"
   ],
@@ -75,10 +75,16 @@
       "回头见",
       "¡Hasta luego!",
       ""
+    ],
+    [
+      "¿Qué onda?",
+      "怎么样？（墨西哥常见的非正式问候）",
+      "¡Hola! ¿Qué onda?",
+      "用于朋友间，正式场合优先 ¿Cómo está usted?"
     ]
   ],
   "framework": "问候 → 问候回应 → 交换姓名 → 道别",
-  "coach": "先理解再输出；西班牙朋友之间通常使用非正式 tú。初次见面也可使用较正式的表达，视情境而定。",
+  "coach": "先理解再输出；与墨西哥朋友聊天通常使用 tú。较正式的场合使用 usted；墨西哥的复数第二人称通常使用 ustedes，不必先学 vosotros。",
   "sections": [
     {
       "id": "pronunciation",
@@ -87,7 +93,7 @@
       "minutes": 10,
       "notes": [
         "hola 的 h 不发音。ñ 如 mañana 中的音，与普通 n 不同。",
-        "西班牙许多地区的 z、ce、ci 发 /θ/，但西班牙也有使用 /s/ 的地区。"
+        "墨西哥西语一般使用 seseo：z 和 ce、ci 与 s 一样读 /s/，如 gracias、cinco、zapato。ll 和 y 通常不区分，但具体发音随地区和说话者变化。"
       ],
       "tasks": [
         {
@@ -143,7 +149,8 @@
       "minutes": 10,
       "notes": [
         "Hola = 你好。Buenos días = 早上好。Buenas tardes = 下午好/较早的晚间问候。Buenas noches = 晚上好/晚安。",
-        "¿Qué tal? / ¿Cómo estás? = 你怎么样？Muy bien, gracias. ¿Y tú? = 很好，谢谢。你呢？"
+        "¿Qué tal? / ¿Cómo estás? = 你怎么样？Muy bien, gracias. ¿Y tú? = 很好，谢谢。你呢？",
+        "墨西哥朋友之间也常说 ¿Qué onda?（很口语的“怎么样？”）。初学时先掌握 Hola、¿Qué tal?、¿Cómo estás?，再认识这类地区口语。"
       ],
       "tasks": [
         {
