@@ -31,7 +31,7 @@ const LanguageLab = (() => {
   const locale = v => {
     const s=text(v,"language",35,"und");
     try { return Intl.getCanonicalLocales(s)[0] || "und"; }
-    catch (_) { throw Error("language 应为 BCP-47，例如 es-ES 或 en-US"); }
+    catch (_) { throw Error("language 应为 BCP-47，例如 es-MX 或 en-US"); }
   };
   // Canonical equivalents and whitespace are normalized; accents and punctuation
   // remain meaningful. Optional acceptedAnswers handle genuine alternatives.
@@ -234,10 +234,10 @@ const LanguageLab = (() => {
       if(desc&&store.submitted)desc.textContent=desc.textContent.replace("选择题正确","客观题正确").replace("写作已核对","开放题已核对");
     };
     // Supply a real v2 template instead of teaching AI the obsolete two-type schema.
-    Object.assign(COURSE_SECTION_TEMPLATE,{version:2,id:"spanish-a1-day01",subject:"西班牙语",language:"es-ES",level:"A1",
+    Object.assign(COURSE_SECTION_TEMPLATE,{version:2,id:"spanish-a1-day01",subject:"西班牙语",language:"es-MX",level:"A1",
       program:"spanish-a1",unit:1,week:1,day:1,category:"综合",lessonType:"learning",objectives:["greetings"],prerequisites:[],
-      title:"Saludos y presentaciones",subtitle:"问候与自我介绍",track:"Spanish A1",focus:"问候与发音",topic:"greetings",
-      studyNotes:["Hola 是日常问候；Buenos días 是上午的问候。","西班牙语重音符号会影响拼写和重音位置，不要省略。"],canDo:["能够简单问候"],framework:"问候 → 自我介绍 → 结束语",coach:"先独立作答，再朗读。",
+      title:"Saludos y presentaciones",subtitle:"问候与自我介绍",track:"Mexican Spanish A1",focus:"问候与发音",topic:"greetings",
+      studyNotes:["Hola 是日常问候；Buenos días 是上午的问候。墨西哥朋友之间也常说 ¿Qué onda?。","墨西哥西语的 z、ce、ci 通常读 /s/；重音符号不可随意省略。复数第二人称使用 ustedes。"],canDo:["能够简单问候"],framework:"问候 → 自我介绍 → 结束语",coach:"先独立作答，再朗读。",
       languageKit:[["Hola","你好","Hola, ¿qué tal?",""]],
       sections:[{id:"basics",title:"练习",subtitle:"拼写、听力与口语",minutes:15,notes:["ser 是表示身份等属性的动词，yo soy 表示我是。"],tasks:[
         {id:"es-q1",type:"fill",prompt:"用西语写：你好",answer:"Hola",acceptedAnswers:["¡Hola!"],tags:["greetings"],explanation:"Hola 用于日常问候。"},
