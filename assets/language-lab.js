@@ -78,7 +78,7 @@ const LanguageLab = (() => {
       })};
     });
     const base=legacy({...input,version:1,sections});
-    const language=locale(input.language || (input.version===1 && /english|英语/i.test(base.subject)?"en-US":"und"));
+    const language=locale(input.language || (input.version!==2 && /english|英语/i.test(base.subject)?"en-US":"und"));
     const lessonType=text(input.lessonType,"lessonType",30,"learning");
     if(!TYPES.includes(lessonType)) throw Error("无效 lessonType: "+lessonType);
     const level=text(input.level,"level",30,"");
@@ -132,7 +132,10 @@ const LanguageLab = (() => {
       });
       const answers={},marks={};
       for(const t of items){
-        if(Object.hasOwn(e.answers,t.id)) answers[t.id]=text(e.answers[t.id],"exam.answer",12000);
+        if(Object.hasOwn(e.answers,t.id)) {
+          if(typeof e.answers[t.id]!=="string"||e.answers[t.id].length>12000) throw Error("考试答案格式错误");
+          answers[t.id]=e.answers[t.id]; // Preserve the exact exam draft, including spaces.
+        }
         if(["good","revise"].includes(e.marks[t.id])) marks[t.id]=e.marks[t.id];
       }
       exams.push({id:e.id,mode:e.mode,program:text(e.program,"program",100),scope:integer(e.scope,"scope",0,999,0),
@@ -140,9 +143,9 @@ const LanguageLab = (() => {
     }
     return {version:1,reviews,exams};
   }
-  function read() {
+  function read(strict=false) {
     try {const raw=localStorage.getItem(KEY);return raw?validateState(JSON.parse(raw)):empty();}
-    catch(e){console.warn("LanguageLab: 无法读取复习记录",e);return empty();}
+    catch(e){if(strict)throw e;console.warn("LanguageLab: 无法读取复习记录",e);return empty();}
   }
   function write(state) {
     try {
@@ -170,7 +173,7 @@ const LanguageLab = (() => {
     const esc=escapeHTML, oldNormalize=normalizeCustomCourse, oldHome=renderHome,
       oldTask=renderTask, oldDay=renderDay, oldWriting=renderWritingAttempt, oldPrompt=feedbackJSONPrompt,
       oldRubric=renderRubric, oldGeneration=buildCourseGenerationPrompt;
-    let filter="*", category="*", level="*", reviewMode="due", examId=null, recognition=null;
+    let filter="*", languageFilter="*", category="*", level="*", reviewMode="due", examId=null, examDeadline=null, recognition=null;
     normalizeCustomCourse=input=>normalizeCourse(input,oldNormalize);
     allStats=()=>{
       const tasks=getTasks(), auto=tasks.filter(objective), open=tasks.filter(t=>!objective(t));
@@ -181,7 +184,7 @@ const LanguageLab = (() => {
         writtenGood,score:choiceGood+writtenGood,allMarked:marked.length===open.length,
         mistakes:tasks.filter(t=>objective(t)?!grade(t,store.answers[t.id]):store.assessments[t.id]==="revise")};
     };
-    feedbackJSONPrompt=()=>oldPrompt().replace("WriteLab 英语训练答案","WriteLab "+metadata(store.current).language+" / "+store.current.subject+" 训练答案")
+    feedbackJSONPrompt=()=>oldPrompt().replace("WriteLab 英语训练答案","WriteLab "+metadata(store.current).language+" / "+(store.current.subject||metadata(store.current).program)+" 训练答案")
       .replace("生成 5 组搭配和 5 道针对性复练题","根据本课程语言和目标生成最多 5 组词汇或知识点及 5 道针对性复练题；非段落课程 paragraph 可留空");
     renderRubric=()=>metadata(store.current).language.startsWith("en")?oldRubric():"";
     renderWritingAttempt=(t,i,essay,v)=>oldWriting(t,i,essay,v).replace("英文答案","作答")
@@ -256,13 +259,13 @@ const LanguageLab = (() => {
         for(const t of getTasks(l)){
           const original=sourceStatus(l,t,r), key=keyFor(l,t);
           if(original===null&&!state.reviews[key])continue;
-          out.push({key,l,t,original,review:state.reviews[key],language:m.language,tags:t.tags?.length?t.tags:l.objectives?.length?l.objectives:[l.focus||m.category]});
+          out.push({key,l,t,original,previousAnswer:r.answers[t.id]||"",review:state.reviews[key],language:m.language,tags:t.tags?.length?t.tags:l.objectives?.length?l.objectives:[l.focus||m.category]});
         }
         l.languageKit.forEach((row,i)=>{
           if(!row[0]||!row[1])return;
           // Include content in the key so editing a card cannot inherit old ratings.
           const key=l.id+"/vocab/"+i+"/"+row[0].slice(0,100)+"/"+row[1].slice(0,100);
-          out.push({key,l,t:{kind:"flashcard",prompt:row[1],answer:row[0],explanation:row[2]},original:null,
+          out.push({key,l,t:{type:"write",kind:"flashcard",prompt:row[1],answer:row[0],explanation:row[2]},original:null,
             review:state.reviews[key],language:m.language,tags:["词汇"]});
         });
       }
@@ -270,7 +273,7 @@ const LanguageLab = (() => {
     };
     const options=(values,selected)=>values.map(([v,label])=>'<option value="'+esc(v)+'" '+(v===selected?"selected":"")+'>'+esc(label)+'</option>').join("");
     const allLessons=()=>[...store.lessons.values()];
-    const matching=()=>allLessons().filter(l=>filter==="*"||metadata(l).program===filter);
+    const matching=()=>allLessons().filter(l=>(filter==="*"||metadata(l).program===filter)&&(languageFilter==="*"||metadata(l).language===languageFilter));
     function examView(e){
       const finished=e.finished!==null, score=examScore(e);
       return '<div class="lab-exam"><h3>'+esc(LABELS[e.mode])+' · '+esc(e.program)+'</h3>'+
@@ -299,9 +302,13 @@ const LanguageLab = (() => {
     function renderWorkspace(){
       const root=document.getElementById("language-lab");if(!root)return;
       const state=read();if(expire(state))write(state);
-      const lessons=allLessons(), programs=[...new Set(lessons.map(l=>metadata(l).program))].sort();
+      const lessons=allLessons(), languages=[...new Set(lessons.map(l=>metadata(l).language))].sort();
+      if(languageFilter!=="*"&&!languages.includes(languageFilter))languageFilter="*";
+      const programs=[...new Set(lessons.filter(l=>languageFilter==="*"||metadata(l).language===languageFilter).map(l=>metadata(l).program))].sort();
       if(filter!=="*"&&!programs.includes(filter))filter="*";
       const scoped=matching(), categories=[...new Set(scoped.map(l=>metadata(l).category))].sort(), levels=[...new Set(scoped.map(l=>metadata(l).level).filter(Boolean))].sort();
+      if(category!=="*"&&!categories.includes(category))category="*";
+      if(level!=="*"&&!levels.includes(level))level="*";
       const visible=scoped.filter(l=>(category==="*"||metadata(l).category===category)&&(level==="*"||metadata(l).level===level));
       const groups=new Map();
       visible.sort((a,b)=>metadata(a).unit-metadata(b).unit||metadata(a).week-metadata(b).week||metadata(a).day-metadata(b).day||a.title.localeCompare(b.title)).forEach(l=>{
@@ -310,15 +317,18 @@ const LanguageLab = (() => {
       });
       const cards=cardsFor(scoped,state), due=cards.filter(c=>!c.review||c.review.due<=Date.now());
       const mistakes=cards.filter(c=>c.review?!c.review.known:c.original===false);
-      const chosen=reviewMode==="wrong"?mistakes:reviewMode==="vocab"?cards.filter(c=>kind(c.t)==="flashcard"):due;
+      const chosen=(reviewMode==="wrong"?mistakes:reviewMode==="vocab"?cards.filter(c=>kind(c.t)==="flashcard"):due).slice()
+        .sort((a,b)=>(a.review?.due??0)-(b.review?.due??0));
       const skills=new Map();
       cards.forEach(c=>{
         const outcome=c.review?.known??c.original;if(outcome===null) return;
         c.tags.forEach(tag=>{const key=metadata(c.l).program+" / "+tag, s=skills.get(key)||[0,0];s[1]++;if(outcome)s[0]++;skills.set(key,s);});
       });
       const active=state.exams.find(e=>e.id===examId);
+      examDeadline=active?.finished===null?active.deadline:null;
       const program=filter==="*"?programs[0]:filter;
       root.innerHTML='<section class="panel lab-panel"><div class="eyebrow">LANGUAGE LAB · 学习工作台</div><h2>课程分类</h2><div class="lab-tools">'+
+        '<label>语言 <select id="lab-language">'+options([["*","全部语言"],...languages.map(p=>[p,p])],languageFilter)+'</select></label>'+
         '<label>学习计划 <select id="lab-program">'+options([["*","全部计划"],...programs.map(p=>[p,p])],filter)+'</select></label>'+
         '<label>分类 <select id="lab-category">'+options([["*","全部分类"],...categories.map(p=>[p,p])],category)+'</select></label>'+
         '<label>等级 <select id="lab-level">'+options([["*","全部等级"],...levels.map(p=>[p,p])],level)+'</select></label></div>'+
@@ -326,10 +336,11 @@ const LanguageLab = (() => {
         '<section class="panel lab-panel" id="lab-review"><div class="eyebrow">REVIEW CENTER</div><h2>复习中心</h2><div class="lab-tools">'+
         [["due","到期复习 ("+due.length+")"],["wrong","错题本 ("+mistakes.length+")"],["vocab","词汇卡片"]].map(([v,label])=>'<button class="mini-button '+(v===reviewMode?"active":"")+'" data-lab="review-mode" data-value="'+v+'">'+label+'</button>').join("")+'</div>'+
         '<p class="lab-meta">先回忆，再展开答案。认识后间隔为 1、3、7、14、30、60 天；忘记后 10 分钟再练。原始作答不变。</p>'+
-        (chosen.slice(0,30).map(c=>'<details class="lab-card"><summary>'+esc(c.t.prompt)+' <small>· '+esc(c.l.title)+'</small></summary>'+
-          (kind(c.t)==="listening"?speakButton(c.t.audioText,c.language,"播放听力"):"")+
+        (chosen.slice(0,30).map(c=>'<div class="lab-review-entry">'+(kind(c.t)==="listening"?speakButton(c.t.audioText,c.language,"播放听力"):"")+
+          '<details class="lab-card"><summary>'+esc(c.t.prompt)+' <small>· '+esc(c.l.title)+'</small></summary>'+
+          (c.original===false?'<p>原始作答：'+esc(c.previousAnswer||"（未作答）")+'</p>':"")+
           '<p><strong>'+esc(c.t.answer)+'</strong> '+(c.language!=="und"?speakButton(c.t.answer,c.language):"")+'</p><p>'+esc(c.t.explanation||"")+'</p>'+
-          '<button class="mini-button" data-lab="rate" data-key="'+esc(c.key)+'" data-value="again">× 忘记</button> <button class="mini-button" data-lab="rate" data-key="'+esc(c.key)+'" data-value="known">✓ 记得</button></details>').join("")||'<p>暂无待复习内容。提交课程并核对开放题后会出现。</p>')+
+          '<button class="mini-button" data-lab="rate" data-key="'+esc(c.key)+'" data-value="again">× 忘记</button> <button class="mini-button" data-lab="rate" data-key="'+esc(c.key)+'" data-value="known">✓ 记得</button></details></div>').join("")||'<p>暂无待复习内容。提交课程并核对开放题后会出现。</p>')+
         (chosen.length>30?'<p>当前显示前 30 项；完成后继续。</p>':"")+
         '<h3>知识点表现</h3><p class="lab-meta">按每道题/词卡最近一次已评分表现统计，并非预测掌握率。</p>'+
         ([...skills].sort((a,b)=>a[1][0]/a[1][1]-b[1][0]/b[1][1]).map(([tag,[good,total]])=>'<div class="lab-skill"><span>'+esc(tag)+'</span><progress max="'+total+'" value="'+good+'"></progress><span>'+good+'/'+total+'</span></div>').join("")||'<p>暂无已评分知识点。</p>')+'</section>'+
@@ -340,7 +351,7 @@ const LanguageLab = (() => {
           '<label>限时分钟 <input id="lab-exam-minutes" type="number" min="1" max="180" value="30"></label>'+
           '<label>题数上限 <input id="lab-exam-count" type="number" min="1" max="100" value="20"></label><button class="button primary" data-lab="exam-start">组卷并开始</button></div>'+
           '<p class="lab-meta">周测按 week、单元考试按 unit、期末覆盖整个计划；优先使用导入的对应试卷，否则从新课/复习课题库抽取。交卷前不显示答案或提示。非防作弊系统。</p>'+
-          (state.exams.slice().reverse().map(e=>'<div class="lab-history"><span>'+esc(LABELS[e.mode]+" · "+e.program+" · "+new Date(e.started).toLocaleString())+'</span><button class="mini-button" data-lab="exam-open" data-id="'+esc(e.id)+'">'+(e.finished===null?"继续考试":examScore(e).correct+"/"+examScore(e).graded+" · 查看记录")+'</button></div>').join("")||'<p>暂无考试记录。</p>'))+'</section>';
+          (state.exams.slice().reverse().map(e=>'<div class="lab-history"><span>'+esc(LABELS[e.mode]+" · "+e.program+" · "+new Date(e.started).toLocaleString())+'</span><div><button class="mini-button" data-lab="exam-open" data-id="'+esc(e.id)+'">'+(e.finished===null?"继续考试":examScore(e).correct+"/"+examScore(e).graded+" · 查看记录")+'</button> '+(e.finished!==null?'<button class="mini-button" data-lab="exam-delete" data-id="'+esc(e.id)+'">删除</button>':"")+'</div></div>').join("")||'<p>暂无考试记录。</p>'))+'</section>';
       updateClock();
     }
     renderHome=()=>{
@@ -374,6 +385,7 @@ const LanguageLab = (() => {
       const bank=authored.length?authored:available.filter(l=>["learning","review"].includes(metadata(l).lessonType));
       const pool=bank.flatMap(l=>getTasks(l).map(t=>({...t,language:metadata(l).language,source:l.id+"/"+t.id})));
       if(!pool.length){alert("当前范围没有题目，请先导入相应课程，或选择正确周/单元。");return;}
+      if(!authored.length&&pool.length<count&&!confirm("当前范围只有 "+pool.length+" 道题，仍要开始吗？"))return;
       // Fisher–Yates samples from source questions without modifying their order.
       if(!authored.length)for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
       const items=pool.slice(0,count).map((t,i)=>({...t,id:"q"+(i+1),kind:kind(t)}));
@@ -382,12 +394,12 @@ const LanguageLab = (() => {
       if(write(state)){examId=id;renderWorkspace();document.getElementById("lab-exams")?.scrollIntoView();}
     }
     function updateClock(){
-      const clock=document.getElementById("lab-clock");if(!clock||!examId)return;
-      const state=read(), e=state.exams.find(x=>x.id===examId);if(!e)return;
-      if(e.finished!==null||expire(state)){
+      const clock=document.getElementById("lab-clock");if(!clock||!examId||examDeadline===null)return;
+      const s=Math.max(0,Math.ceil((examDeadline-Date.now())/1000));
+      if(s===0){
+        const state=read();expire(state);examDeadline=null;
         if(write(state))renderWorkspace();return;
       }
-      const s=Math.ceil((e.deadline-Date.now())/1000);
       clock.textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
     }
     setInterval(updateClock,1000);
@@ -424,7 +436,8 @@ const LanguageLab = (() => {
     addEventListener("hashchange",()=>{recognition?.abort();recognition=null;if("speechSynthesis" in window)speechSynthesis.cancel();});
     ui.addEventListener("change",e=>{
       const el=e.target;
-      if(el.id==="lab-program"){filter=el.value;category=level="*";renderWorkspace();}
+      if(el.id==="lab-language"){languageFilter=el.value;filter=category=level="*";renderWorkspace();}
+      else if(el.id==="lab-program"){filter=el.value;category=level="*";renderWorkspace();}
       else if(el.id==="lab-category"){category=el.value;renderWorkspace();}
       else if(el.id==="lab-level"){level=el.value;renderWorkspace();}
       else if(el.matches('input[type="radio"][data-lab-answer]')) saveExamAnswer(el);
@@ -459,6 +472,12 @@ const LanguageLab = (() => {
         startExam(m.lessonType,m.program,m.lessonType==="weekly"?m.week:m.lessonType==="unit"?m.unit:0,l.examMinutes||30,Math.min(100,getTasks(l).length),l);return;
       }
       if(a==="exam-open"){examId=b.dataset.id;renderWorkspace();return;}
+      if(a==="exam-delete"){
+        const state=read(), target=state.exams.find(x=>x.id===b.dataset.id);
+        if(target?.finished!=null&&confirm("删除这次考试记录？原课程和复习记录不受影响。")){
+          state.exams=state.exams.filter(x=>x.id!==target.id);if(write(state))renderWorkspace();
+        }return;
+      }
       if(a==="exam-close"){recognition?.abort();examId=null;renderWorkspace();return;}
       const state=read(), e=state.exams.find(x=>x.id===examId);if(!e)return;
       expire(state);
