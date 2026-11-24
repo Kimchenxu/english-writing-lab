@@ -26,7 +26,16 @@ const pad = x => String(x).padStart(2,"0");
 const formatClock = ms => `${pad(Math.floor(ms/60000))}:${pad(Math.floor((ms%60000)/1000))}`;
 const getRoute = () => (location.hash.match(/^#\/(day\d{2,3}|custom-[a-z0-9-]{1,64})\/?$/) || [])[1] || null;
 const getTasks = (lesson = store.current) => lesson.sections.flatMap(section => section.tasks);
-const wordCount = text => (String(text || "").match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g) || []).length;
+// Count Unicode words, including Spanish accents and scripts without spaces.
+const wordCount = text => {
+  const value=String(text||"").normalize("NFC");
+  const lang=store.current?.language||"en";
+  try {
+    if(typeof Intl.Segmenter==="function")
+      return [...new Intl.Segmenter(lang,{granularity:"word"}).segment(value)].filter(s=>s.isWordLike).length;
+  }catch(_){/* fallback for unavailable locales/segmenters */}
+  return (value.match(/\p{L}[\p{L}\p{M}]*(?:['’-][\p{L}\p{M}]+)*/gu)||[]).length;
+};
 
 // 使用题目独立 id 保存作答，调整题目排序不会导致答案错位。
 function loadRecord(id) {
@@ -554,7 +563,7 @@ function exportBackup() {
   } catch (_) { alert("浏览器无法读取本地存储，请检查隐私设置。");return; }
   // v2 备份同时包含自定义题库和各课程的作答；仍兼容读取旧版 v1 备份。
   const snapshot={format:"writelab-local-backup",version:2,exportedAt:new Date().toISOString(),
-    courses:[...store.customLessons.values()],records};
+    courses:[...store.customLessons.values()],records,languageLab:LanguageLab.read()};
   downloadJSON(snapshot,`writelab-backup-${new Date().toISOString().slice(0,10)}.json`);
 }
 
@@ -574,6 +583,8 @@ async function importBackup(file) {
     // 所有课程先校验，再整体恢复；内置课程文件不受影响。
     const courses = obj.version===2 ? obj.courses : [];
     if(!Array.isArray(courses)||courses.length>100)throw Error("备份课程库格式错误");
+    // Validate the independent review/exam records before any writes.
+    const lab=obj.languageLab===undefined?null:LanguageLab.validateState(obj.languageLab);
     const normalized=courses.map(normalizeCustomCourse);
     if(new Set(normalized.map(x=>x.id)).size!==normalized.length)throw Error("备份课程 ID 重复");
     // 写入前校验全部记录，避免导入一半才发现文件错误。
@@ -585,12 +596,15 @@ async function importBackup(file) {
     // 容量问题可能导致写入失败：保存旧值并在失败时尽力回滚。
     const before=entries.map(([key])=>[key,localStorage.getItem(key)]);
     const previousCourses=localStorage.getItem(CUSTOM_COURSES_KEY);
+    const previousLab=localStorage.getItem(LanguageLab.KEY);
     try {
       if(obj.version===2)localStorage.setItem(CUSTOM_COURSES_KEY,JSON.stringify(normalized));
       for(const [key,value] of entries)localStorage.setItem(key,value);
+      if(lab!==null)localStorage.setItem(LanguageLab.KEY,JSON.stringify(lab));
     }catch(error) {
       if(obj.version===2) {if(previousCourses===null)localStorage.removeItem(CUSTOM_COURSES_KEY);else localStorage.setItem(CUSTOM_COURSES_KEY,previousCourses);}
       for(const [key,old] of before){if(old===null)localStorage.removeItem(key);else localStorage.setItem(key,old);}
+      if(lab!==null){if(previousLab===null)localStorage.removeItem(LanguageLab.KEY);else localStorage.setItem(LanguageLab.KEY,previousLab);}
       throw error;
     }
     alert("备份已恢复，页面将重新载入。");
@@ -1068,10 +1082,10 @@ function updateResults() {
   if (!store.current) return;
   const s=allStats();
   document.getElementById("score").innerHTML=`${s.allMarked?s.score:"—"}<small>自评 / ${s.tasks}</small>`;
-  document.getElementById("results-desc").textContent=`选择题正确 ${s.choiceGood}/${s.choice} · 写作已核对 ${s.marked}/${s.written} · 计时 ${formatClock(timerElapsed())}`;
+  document.getElementById("results-desc").textContent=`客观题正确 ${s.choiceGood}/${s.choice} · 开放题已核对 ${s.marked}/${s.written} · 计时 ${formatClock(timerElapsed())}`;
   document.getElementById("results-note").textContent=s.allMarked
-    ? `需要重写 ${s.mistakes.length} 道题。参考答案不是唯一写法：判断标准是句子是否自然、逻辑是否成立，以及是否正确实现题目目标。`
-    : `还有 ${s.written-s.marked} 道写作题没有自评。请对照参考答案，并标记“达到要求”或“需要重写”。`;
+    ? `需要复习 ${s.mistakes.length} 道题。客观题按选项或指定答案判分；开放题应根据课程目标自行核对。`
+    : `还有 ${s.written-s.marked} 道开放题没有自评。请对照参考答案，并标记“达到要求”或“需要重写”。`;
 }
 function copyText() {
   const l=store.current,qs=getTasks(),s=allStats();
@@ -1080,11 +1094,11 @@ function copyText() {
     // 不改变旧版教练请求中 MY ANSWER 的语义，追加批注和第二遍（有内容时）。
     ...qs.map((q,i)=>{
       let txt=`${i+1}. ${q.prompt}\nMY ANSWER (1/2): ${store.answers[q.id]||"(blank)"}\n`;
-      if(q.type==="write") {
+      if(!LanguageLab.objective(q)) {
         if(Object.prototype.hasOwnProperty.call(store.annotations,q.id)) txt+=`CORRECTIONS (~~deleted~~ and red parentheses): ${annotationAsText(store.annotations[q.id])}\n`;
         if(String(store.revisions[q.id]||"").trim()) txt+=`SECOND ATTEMPT (2/2): ${store.revisions[q.id]}\n`;
       }
-      return txt+(q.type==="choice"?(store.answers[q.id]===q.answer?"✓ correct":"✕ needs review"):(store.assessments[q.id]==="good"?"✓ meets target":store.assessments[q.id]==="revise"?"↻ rewrite":"○ not reviewed"))+"\n";
+      return txt+(LanguageLab.objective(q)?(LanguageLab.grade(q,store.answers[q.id])?"✓ correct":"✕ needs review"):(store.assessments[q.id]==="good"?"✓ meets target":store.assessments[q.id]==="revise"?"↻ rewrite":"○ not reviewed"))+"\n";
     })
   ].join("\n");
 }
@@ -1300,6 +1314,8 @@ return;
     case "feedback-scroll-practice": document.getElementById("feedback-practice")?.scrollIntoView({behavior:"smooth"});break;
   }
 });
+// Install the multilingual adapter before loading any legacy or v2 courses.
+LanguageLab.install();
 addEventListener("hashchange",navigate);
 loadCourses().then(navigate).catch(e=>showError(e.message));
 
