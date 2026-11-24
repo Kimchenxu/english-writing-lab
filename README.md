@@ -1,4 +1,37 @@
-# WriteLab · English Writing Gym
+# WriteLab · LanguageLab
+
+WriteLab 已扩展为依赖 JSON 的多语言学习工作台。原有英语写作 Day 01–07、初稿、批注、二次写作、AI 批改及本地存档继续可用。运行时仍是 HTML/CSS/原生 JavaScript，不需要后端、账号、数据库或付费 API。
+
+## 多语言版本快速开始
+
+1. 通过 GitHub Pages 或在仓库根目录运行 `python3 -m http.server 5500` 打开站点。
+2. 首页按语言、学习计划、等级与分类筛选课程；按单元、周、天排列。
+3. 点击「西语 Day 01」或「周测示例」把完整示例填入导入框，再点击导入。也可自行生成 JSON。
+4. 完成练习并提交，客观题自动判分，开放题自行核对或使用原 AI 批改流程。复习中心会显示到期题目、错题和词汇卡。
+5. 考试中心选择计划、周测/单元/期末、范围、时间和题数；支持生成试卷或打开导入的指定试卷。考试记录独立于原课程。
+
+### 课程格式与新功能
+
+- [v2 JSON Schema](schemas/course-v2.schema.json)
+- [西语 A1 Day 01 课程示例（45 分钟）](examples/spanish-a1-day01.json)
+- [西语示例周测](examples/spanish-a1-week01-exam.json)
+- [v2 开发与使用说明](docs/language-lab-v2.md)
+
+旧 v1 JSON 可直接导入，无需手动迁移。保留原课程 ID 与题目 ID；不清空已有本地记录。升级前建议使用原网站的备份功能。
+
+### 测试
+
+```bash
+# 纯 Node 18+，无需 npm 依赖
+node tests/smoke.cjs
+
+# 可选：真实 Chromium 端到端测试（开发依赖，不影响部署）
+npm install --no-save --no-package-lock playwright
+npx playwright install chromium
+node tests/browser-smoke.cjs
+```
+
+## 原有英语写作课程说明
 
 一个专门练习 **词汇主动使用、英语搭配、句子构建、句间逻辑、学术段落和自我修改** 的静态英语写作训练网站。目标用户可能已经认识很多英文单词、学过语法，但写作时难以迅速组织完整且自然的表达。
 
