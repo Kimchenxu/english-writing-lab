@@ -1,0 +1,60 @@
+{
+  "format": "writelab-course",
+  "version": 2,
+  "id": "spanish-a1-week01-exam",
+  "title": "Semana 01 · Prueba de ejemplo",
+  "subtitle": "示例周测：只覆盖示例 Day 01 的内容，并非完整 A1 周测",
+  "subject": "西班牙语",
+  "language": "es-ES",
+  "program": "spanish-a1",
+  "level": "A1",
+  "week": 1,
+  "unit": 1,
+  "lessonType": "weekly",
+  "examMinutes": 5,
+  "category": "考试",
+  "questions": [
+    {
+      "id": "e1",
+      "type": "conjugation",
+      "prompt": "tú ___ (ser)",
+      "answer": "eres",
+      "tags": [
+        "ser-present"
+      ]
+    },
+    {
+      "id": "e2",
+      "type": "fill",
+      "prompt": "写出“谢谢”。",
+      "answer": "Gracias",
+      "acceptedAnswers": [
+        "¡Gracias!"
+      ],
+      "tags": [
+        "greetings"
+      ]
+    },
+    {
+      "id": "e3",
+      "type": "listening",
+      "prompt": "听音频，写出问候语。",
+      "audioText": "Buenos días",
+      "answer": "Buenos días",
+      "tags": [
+        "listening"
+      ]
+    },
+    {
+      "id": "e4",
+      "type": "speaking",
+      "prompt": "用西语问候，并介绍你的名字。",
+      "answer": "¡Hola! Me llamo Ana.",
+      "tags": [
+        "speaking",
+        "introductions"
+      ],
+      "explanation": "姓名可以不同；检查语法和表达是否合适。"
+    }
+  ]
+}
