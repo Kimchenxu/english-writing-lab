@@ -364,7 +364,7 @@ const LanguageLab = (() => {
       document.title="WriteLab · LanguageLab";
       siteStatus.textContent=allLessons().length+" COURSES";
       const hero=ui.querySelector(".hero");
-      if(hero)hero.innerHTML='<div><div class="eyebrow">ACTIVE LEARNING · MULTILINGUAL</div><h1>LanguageLab.</h1><p class="hero-intro">从语言基础到真实表达：学习、复习、测试、持续进步。</p><div class="lab-tools"><button class="button outline" data-lab="scroll" data-id="lab-catalog">课程</button><button class="button outline" data-lab="scroll" data-id="lab-review">复习</button><button class="button outline" data-lab="scroll" data-id="lab-exams">考试</button><button class="button outline" data-lab="scroll" data-id="course-importer">导入课程</button><button class="button primary" data-lab="spanish-example">西语示例</button></div></div><aside class="hero-aside"><div class="aside-label">ONE WORKSPACE</div><div class="aside-num">'+allLessons().length+' <small>COURSES</small></div><p>保留原 WriteLab 学习记录。</p></aside>';
+      if(hero)hero.innerHTML='<div><div class="eyebrow">ACTIVE LEARNING · MULTILINGUAL</div><h1>LanguageLab.</h1><p class="hero-intro">从语言基础到真实表达：学习、复习、测试、持续进步。</p><div class="lab-tools"><button class="button outline" data-lab="scroll" data-id="lab-catalog">课程</button><button class="button outline" data-lab="scroll" data-id="lab-review">复习</button><button class="button outline" data-lab="scroll" data-id="lab-exams">考试</button><button class="button outline" data-lab="scroll" data-id="course-importer">导入课程</button><button class="button primary" data-lab="spanish-example" data-id="day">西语 Day 01</button><button class="button outline" data-lab="spanish-example" data-id="exam">周测示例</button></div></div><aside class="hero-aside"><div class="aside-label">ONE WORKSPACE</div><div class="aside-num">'+allLessons().length+' <small>COURSES</small></div><p>保留原 WriteLab 学习记录。</p></aside>';
       const library=document.getElementById("custom-lessons");
       if(library){
         // Legacy library is followed by the old English header, grid, week strip.
@@ -460,8 +460,18 @@ const LanguageLab = (() => {
       const a=b.dataset.lab;
       if(a==="scroll"){document.getElementById(b.dataset.id)?.scrollIntoView({behavior:"smooth"});return;}
       if(a==="spanish-example"){
+        // Load the full bundled example into the existing import editor.
+        // The learner still chooses whether to import/replace a local lesson.
+        const file=b.dataset.id==="exam"?"spanish-a1-week01-exam.json":"spanish-a1-day01.json";
         const input=document.getElementById("course-json-input");
-        if(input){input.value=JSON.stringify(COURSE_SECTION_TEMPLATE,null,2);input.focus();input.scrollIntoView({behavior:"smooth"});}
+        if(!input)return;
+        fetch("./examples/"+file).then(res=>{
+          if(!res.ok)throw Error("HTTP "+res.status);return res.text();
+        }).then(raw=>{
+          parseCustomCourseJSON(raw);
+          if(!input.isConnected)return;
+          input.value=raw;input.focus();input.scrollIntoView({behavior:"smooth"});
+        }).catch(e=>alert("示例加载失败："+e.message+"。可使用课程模板或仓库 examples 目录。"));
         return;
       }
       if(a==="speak"){speak(b.dataset.value,b.dataset.lang);return;}
