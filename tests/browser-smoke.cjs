@@ -41,7 +41,7 @@ async function main(){
     };
     await importFile("spanish-a1-day01.json");
     await importFile("spanish-a1-week01-exam.json");
-    await page.locator("#lab-language").selectOption("es-ES");
+    await page.locator("#lab-language").selectOption("es-MX");
     assert.equal(await page.locator('#lab-catalog a[href="#/day01"]').count(),0);
     await page.locator('#lab-catalog a[href="#/custom-spanish-a1-day01"]').click();
     await page.locator("#answer-g1").fill("Buenos días");
